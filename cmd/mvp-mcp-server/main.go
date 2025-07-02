@@ -11,11 +11,11 @@ import (
 
 // JSON-RPC 2.0 message structure
 type JSONRPCMessage struct {
-	JSONRpc string      `json:"jsonrpc"`
-	ID      interface{} `json:"id,omitempty"`
-	Method  string      `json:"method,omitempty"`
-	Params  interface{} `json:"params,omitempty"`
-	Result  interface{} `json:"result,omitempty"`
+	JSONRpc string        `json:"jsonrpc"`
+	ID      interface{}   `json:"id,omitempty"`
+	Method  string        `json:"method,omitempty"`
+	Params  interface{}   `json:"params,omitempty"`
+	Result  interface{}   `json:"result,omitempty"`
 	Error   *JSONRPCError `json:"error,omitempty"`
 }
 
@@ -38,9 +38,9 @@ type ClientInfo struct {
 }
 
 type InitializeResult struct {
-	ProtocolVersion string           `json:"protocolVersion"`
+	ProtocolVersion string             `json:"protocolVersion"`
 	Capabilities    ServerCapabilities `json:"capabilities"`
-	ServerInfo      ServerInfo       `json:"serverInfo"`
+	ServerInfo      ServerInfo         `json:"serverInfo"`
 }
 
 type ServerCapabilities struct {
@@ -68,7 +68,7 @@ type ServerInfo struct {
 func main() {
 	log.SetOutput(os.Stderr)
 	log.Println("MVP MCP Server starting...")
-	
+
 	scanner := bufio.NewScanner(os.Stdin)
 
 	for scanner.Scan() {

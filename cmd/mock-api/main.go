@@ -18,23 +18,9 @@ type User struct {
 	Created  string `json:"created"`
 }
 
-type Product struct {
-	ID          int     `json:"id"`
-	Name        string  `json:"name"`
-	Description string  `json:"description"`
-	Price       float64 `json:"price"`
-	Category    string  `json:"category"`
-}
-
 var users = []User{
 	{ID: 1, Name: "John Doe", Email: "john@example.com", Created: "2024-01-15T10:00:00Z"},
 	{ID: 2, Name: "Jane Smith", Email: "jane@example.com", Created: "2024-01-20T15:30:00Z"},
-}
-
-var products = []Product{
-	{ID: 1, Name: "Laptop", Description: "High-performance laptop", Price: 999.99, Category: "Electronics"},
-	{ID: 2, Name: "Coffee Mug", Description: "Ceramic coffee mug", Price: 12.99, Category: "Kitchen"},
-	{ID: 3, Name: "Book", Description: "Programming guide", Price: 29.99, Category: "Education"},
 }
 
 func corsHandler(next http.HandlerFunc) http.HandlerFunc {
@@ -76,51 +62,10 @@ func usersHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func usersSearchHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	
-	if r.Method != "GET" {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-		return
-	}
-	
-	query := r.URL.Query().Get("q")
-	if query == "" {
-		http.Error(w, "Search query 'q' is required", http.StatusBadRequest)
-		return
-	}
-	
-	limitStr := r.URL.Query().Get("limit")
-	limit := 10 // default
-	if limitStr != "" {
-		if l, err := strconv.Atoi(limitStr); err == nil && l > 0 {
-			limit = l
-		}
-	}
-	
-	var results []User
-	query = strings.ToLower(query)
-	
-	for _, user := range users {
-		if strings.Contains(strings.ToLower(user.Name), query) {
-			results = append(results, user)
-			if len(results) >= limit {
-				break
-			}
-		}
-	}
-	
-	json.NewEncoder(w).Encode(results)
-}
-
 func userHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	
 	idStr := strings.TrimPrefix(r.URL.Path, "/users/")
-	if idStr == "search" {
-		usersSearchHandler(w, r)
-		return
-	}
 	
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
@@ -164,38 +109,6 @@ func userHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func productsHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	
-	switch r.Method {
-	case "GET":
-		category := r.URL.Query().Get("category")
-		if category != "" {
-			var filtered []Product
-			for _, p := range products {
-				if strings.EqualFold(p.Category, category) {
-					filtered = append(filtered, p)
-				}
-			}
-			json.NewEncoder(w).Encode(filtered)
-		} else {
-			json.NewEncoder(w).Encode(products)
-		}
-	case "POST":
-		var product Product
-		if err := json.NewDecoder(r.Body).Decode(&product); err != nil {
-			http.Error(w, "Invalid JSON", http.StatusBadRequest)
-			return
-		}
-		product.ID = len(products) + 1
-		products = append(products, product)
-		w.WriteHeader(http.StatusCreated)
-		json.NewEncoder(w).Encode(product)
-	default:
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-	}
-}
-
 func healthHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	response := map[string]interface{}{
@@ -216,20 +129,15 @@ func main() {
 	http.HandleFunc("/health", corsHandler(healthHandler))
 	http.HandleFunc("/users", corsHandler(usersHandler))
 	http.HandleFunc("/users/", corsHandler(userHandler))
-	http.HandleFunc("/products", corsHandler(productsHandler))
 	
 	fmt.Printf("Mock API Server starting on port %s...\n", port)
 	fmt.Println("Available endpoints:")
 	fmt.Println("  GET    /health")
 	fmt.Println("  GET    /users")
 	fmt.Println("  POST   /users")
-	fmt.Println("  GET    /users/search?q={query}&limit={limit}")
 	fmt.Println("  GET    /users/{id}")
 	fmt.Println("  PUT    /users/{id}")
 	fmt.Println("  DELETE /users/{id}")
-	fmt.Println("  GET    /products")
-	fmt.Println("  GET    /products?category={category}")
-	fmt.Println("  POST   /products")
 	
 	if err := http.ListenAndServe(":"+port, nil); err != nil {
 		log.Fatal("Server failed to start:", err)
