@@ -22,7 +22,7 @@ func NewMCPBridge(apiBaseURL string) *MCPBridge {
 	bridge := &MCPBridge{
 		server:     mcp.NewServer(),
 		restClient: restClient,
-		endpoints:  restClient.GetAvailableEndpoints(),
+		endpoints:  []APIEndpoint{}, // Initialize empty, will be populated via AddCustomEndpoint
 	}
 	
 	bridge.setupMCPServer()

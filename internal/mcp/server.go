@@ -46,8 +46,6 @@ func NewServer() *Server {
 }
 
 func (s *Server) Start() error {
-	log.Println("MCP Server starting...")
-	
 	for s.reader.Scan() {
 		line := strings.TrimSpace(s.reader.Text())
 		if line == "" {
@@ -132,7 +130,6 @@ func (s *Server) handleInitialize(msg *types.JSONRPCMessage) error {
 
 func (s *Server) handleInitialized(msg *types.JSONRPCMessage) error {
 	s.initialized = true
-	log.Println("MCP Server initialized successfully")
 	return nil
 }
 

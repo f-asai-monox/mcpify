@@ -36,11 +36,11 @@ type APIParameter struct {
 }
 
 type APIResponse struct {
-	StatusCode int                    `json:"statusCode"`
-	Headers    map[string]string      `json:"headers"`
-	Body       string                 `json:"body"`
-	Data       interface{}            `json:"data,omitempty"`
-	Error      string                 `json:"error,omitempty"`
+	StatusCode int               `json:"statusCode"`
+	Headers    map[string]string `json:"headers"`
+	Body       string            `json:"body"`
+	Data       interface{}       `json:"data,omitempty"`
+	Error      string            `json:"error,omitempty"`
 }
 
 func NewRestClient(baseURL string) *RestClient {
@@ -66,7 +66,7 @@ func (c *RestClient) MakeRequest(endpoint APIEndpoint, args map[string]interface
 	if err != nil {
 		return nil, fmt.Errorf("error building URL: %w", err)
 	}
-	
+
 	var reqBody io.Reader
 	if endpoint.Method == "POST" || endpoint.Method == "PUT" || endpoint.Method == "PATCH" {
 		bodyData := c.extractBodyData(endpoint, args)
@@ -78,24 +78,24 @@ func (c *RestClient) MakeRequest(endpoint APIEndpoint, args map[string]interface
 			reqBody = bytes.NewBuffer(jsonData)
 		}
 	}
-	
+
 	req, err := http.NewRequest(endpoint.Method, fullURL, reqBody)
 	if err != nil {
 		return nil, fmt.Errorf("error creating request: %w", err)
 	}
-	
+
 	for key, value := range c.headers {
 		req.Header.Set(key, value)
 	}
-	
+
 	for key, value := range endpoint.Headers {
 		req.Header.Set(key, value)
 	}
-	
+
 	if reqBody != nil {
 		req.Header.Set("Content-Type", "application/json")
 	}
-	
+
 	for _, param := range endpoint.Parameters {
 		if param.In == "header" {
 			if value, exists := args[param.Name]; exists {
@@ -103,31 +103,31 @@ func (c *RestClient) MakeRequest(endpoint APIEndpoint, args map[string]interface
 			}
 		}
 	}
-	
+
 	resp, err := c.httpClient.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("error making request: %w", err)
 	}
 	defer resp.Body.Close()
-	
+
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, fmt.Errorf("error reading response body: %w", err)
 	}
-	
+
 	responseHeaders := make(map[string]string)
 	for key, values := range resp.Header {
 		if len(values) > 0 {
 			responseHeaders[key] = values[0]
 		}
 	}
-	
+
 	apiResp := &APIResponse{
 		StatusCode: resp.StatusCode,
 		Headers:    responseHeaders,
 		Body:       string(body),
 	}
-	
+
 	if resp.StatusCode >= 400 {
 		apiResp.Error = fmt.Sprintf("HTTP %d: %s", resp.StatusCode, string(body))
 	} else {
@@ -136,14 +136,14 @@ func (c *RestClient) MakeRequest(endpoint APIEndpoint, args map[string]interface
 			apiResp.Data = data
 		}
 	}
-	
+
 	return apiResp, nil
 }
 
 func (c *RestClient) buildURL(endpoint APIEndpoint, args map[string]interface{}) (string, error) {
 	path := endpoint.Path
 	queryParams := url.Values{}
-	
+
 	for _, param := range endpoint.Parameters {
 		value, exists := args[param.Name]
 		if !exists {
@@ -154,11 +154,11 @@ func (c *RestClient) buildURL(endpoint APIEndpoint, args map[string]interface{})
 				value = param.Default
 			}
 		}
-		
+
 		if value == nil {
 			continue
 		}
-		
+
 		switch param.In {
 		case "path":
 			placeholder := "{" + param.Name + "}"
@@ -167,18 +167,18 @@ func (c *RestClient) buildURL(endpoint APIEndpoint, args map[string]interface{})
 			queryParams.Add(param.Name, fmt.Sprintf("%v", value))
 		}
 	}
-	
+
 	fullURL := c.baseURL + path
 	if len(queryParams) > 0 {
 		fullURL += "?" + queryParams.Encode()
 	}
-	
+
 	return fullURL, nil
 }
 
 func (c *RestClient) extractBodyData(endpoint APIEndpoint, args map[string]interface{}) map[string]interface{} {
 	bodyData := make(map[string]interface{})
-	
+
 	for _, param := range endpoint.Parameters {
 		if param.In == "body" {
 			value, exists := args[param.Name]
@@ -189,7 +189,7 @@ func (c *RestClient) extractBodyData(endpoint APIEndpoint, args map[string]inter
 			}
 		}
 	}
-	
+
 	if len(bodyData) == 0 {
 		for key, value := range args {
 			isPathOrQuery := false
@@ -204,89 +204,10 @@ func (c *RestClient) extractBodyData(endpoint APIEndpoint, args map[string]inter
 			}
 		}
 	}
-	
+
 	if len(bodyData) == 0 {
 		return nil
 	}
-	
-	return bodyData
-}
 
-func (c *RestClient) GetAvailableEndpoints() []APIEndpoint {
-	return []APIEndpoint{
-		{
-			Name:        "get_users",
-			Description: "Get all users",
-			Method:      "GET",
-			Path:        "/users",
-			Parameters:  []APIParameter{},
-		},
-		{
-			Name:        "create_user",
-			Description: "Create a new user",
-			Method:      "POST",
-			Path:        "/users",
-			Parameters: []APIParameter{
-				{Name: "name", Type: "string", Required: true, Description: "User name", In: "body"},
-				{Name: "email", Type: "string", Required: true, Description: "User email", In: "body"},
-			},
-		},
-		{
-			Name:        "get_user",
-			Description: "Get a specific user by ID",
-			Method:      "GET",
-			Path:        "/users/{id}",
-			Parameters: []APIParameter{
-				{Name: "id", Type: "integer", Required: true, Description: "User ID", In: "path"},
-			},
-		},
-		{
-			Name:        "update_user",
-			Description: "Update an existing user",
-			Method:      "PUT",
-			Path:        "/users/{id}",
-			Parameters: []APIParameter{
-				{Name: "id", Type: "integer", Required: true, Description: "User ID", In: "path"},
-				{Name: "name", Type: "string", Required: false, Description: "User name", In: "body"},
-				{Name: "email", Type: "string", Required: false, Description: "User email", In: "body"},
-			},
-		},
-		{
-			Name:        "delete_user",
-			Description: "Delete a user",
-			Method:      "DELETE",
-			Path:        "/users/{id}",
-			Parameters: []APIParameter{
-				{Name: "id", Type: "integer", Required: true, Description: "User ID", In: "path"},
-			},
-		},
-		{
-			Name:        "get_products",
-			Description: "Get all products, optionally filtered by category",
-			Method:      "GET",
-			Path:        "/products",
-			Parameters: []APIParameter{
-				{Name: "category", Type: "string", Required: false, Description: "Filter by category", In: "query"},
-			},
-		},
-		{
-			Name:        "create_product",
-			Description: "Create a new product",
-			Method:      "POST",
-			Path:        "/products",
-			Parameters: []APIParameter{
-				{Name: "name", Type: "string", Required: true, Description: "Product name", In: "body"},
-				{Name: "description", Type: "string", Required: true, Description: "Product description", In: "body"},
-				{Name: "price", Type: "number", Required: true, Description: "Product price", In: "body"},
-				{Name: "category", Type: "string", Required: true, Description: "Product category", In: "body"},
-			},
-		},
-		{
-			Name:        "health_check",
-			Description: "Check API health status",
-			Method:      "GET",
-			Path:        "/health",
-			Parameters:  []APIParameter{},
-		},
-	}
+	return bodyData
 }
