@@ -1,96 +1,97 @@
 # MCP Bridge
 
-REST APIをMCPサーバーとして利用するためのプロキシサーバーです。
+A proxy server that enables REST APIs to be used as MCP (Model Context Protocol) servers.
 
-## 概要
+## Overview
 
-MCP Bridge は、既存の REST API を Model Context Protocol (MCP) サーバーとして利用できるようにするプロキシサーバーです。これにより、REST API を MCP クライアント（Claude Code など）から直接利用できるようになります。
+MCP Bridge is a proxy server that allows existing REST APIs to be used as Model Context Protocol (MCP) servers. This enables REST APIs to be directly utilized by MCP clients such as Claude Code.
 
-## 特徴
+## Features
 
-- **REST API to MCP変換**: REST APIエンドポイントをMCPツールとして自動変換
-- **JSON-RPC 2.0準拠**: MCPプロトコルに完全準拠
-- **設定可能**: 設定ファイルによる柔軟なカスタマイズ
-- **Mock APIサーバー**: テスト用のシンプルなREST APIサーバーを内蔵
+- **REST API to MCP Conversion**: Automatically converts REST API endpoints to MCP tools
+- **JSON-RPC 2.0 Compliant**: Fully compliant with the MCP protocol
+- **Configurable**: Flexible customization through configuration files
+- **Mock API Server**: Built-in simple REST API server for testing
 
-## プロジェクト構成
+## Project Structure
 
 ```
 mcp-bridge/
 ├── cmd/
-│   ├── mcp-server/     # MCPサーバー実行ファイル
-│   └── mock-api/       # REST API mockサーバー
+│   ├── mcp-server/     # MCP server executable
+│   └── mock-api/       # REST API mock server
 ├── internal/
-│   ├── mcp/           # MCP実装
-│   ├── bridge/        # REST API変換ロジック
-│   └── config/        # 設定管理
+│   ├── mcp/           # MCP implementation
+│   ├── bridge/        # REST API conversion logic
+│   └── config/        # Configuration management
 ├── pkg/
-│   └── types/         # 共通型定義
+│   └── types/         # Common type definitions
 ├── go.mod
 ├── go.sum
-└── README.md
+├── README.md
+└── README-ja.md       # Japanese version
 ```
 
-## インストール・ビルド
+## Installation & Build
 
-### 依存関係
-- Go 1.21以上
+### Dependencies
+- Go 1.21 or higher
 
-### ビルド
+### Build
 
 ```bash
-# MCPサーバーのビルド
+# Build MCP server
 go build -o bin/mcp-server ./cmd/mcp-server
 
-# Mock APIサーバーのビルド
+# Build Mock API server
 go build -o bin/mock-api ./cmd/mock-api
 ```
 
-## 使用方法
+## Usage
 
-### 1. Mock APIサーバーの起動
+### 1. Start Mock API Server
 
-テスト用のREST APIサーバーを起動します：
+Start the test REST API server:
 
 ```bash
 ./bin/mock-api
 
-# または直接実行
+# Or run directly
 go run ./cmd/mock-api
 ```
 
-APIサーバーは `http://localhost:8080` で起動し、以下のエンドポイントが利用できます：
+The API server starts at `http://localhost:8080` with the following endpoints:
 
-- `GET /health` - ヘルスチェック
-- `GET /users` - 全ユーザー取得
-- `POST /users` - ユーザー作成
-- `GET /users/{id}` - 特定ユーザー取得
-- `PUT /users/{id}` - ユーザー更新
-- `DELETE /users/{id}` - ユーザー削除
-- `GET /products` - 全商品取得
-- `GET /products?category={category}` - カテゴリ別商品取得
-- `POST /products` - 商品作成
+- `GET /health` - Health check
+- `GET /users` - Get all users
+- `POST /users` - Create user
+- `GET /users/{id}` - Get specific user
+- `PUT /users/{id}` - Update user
+- `DELETE /users/{id}` - Delete user
+- `GET /products` - Get all products
+- `GET /products?category={category}` - Get products by category
+- `POST /products` - Create product
 
-### 2. MCPサーバーの起動
+### 2. Start MCP Server
 
-MCPブリッジサーバーを起動します：
+Start the MCP bridge server:
 
 ```bash
 ./bin/mcp-server
 
-# または設定ファイルを指定
+# Or specify config file
 ./bin/mcp-server -config ./config.json
 
-# またはAPIベースURLを直接指定
+# Or specify API base URL directly
 ./bin/mcp-server -api-url http://localhost:8080
 
-# 詳細ログを有効にする場合
+# Enable verbose logging
 ./bin/mcp-server -verbose
 ```
 
-### 3. 設定ファイル
+### 3. Configuration File
 
-設定ファイル例（`config.json`）：
+Example configuration file (`config.json`):
 
 ```json
 {
@@ -110,7 +111,7 @@ MCPブリッジサーバーを起動します：
   "endpoints": [
     {
       "name": "custom_endpoint",
-      "description": "カスタムエンドポイント",
+      "description": "Custom endpoint",
       "method": "GET",
       "path": "/api/custom",
       "parameters": [
@@ -118,7 +119,7 @@ MCPブリッジサーバーを起動します：
           "name": "param1",
           "type": "string",
           "required": true,
-          "description": "パラメータ1",
+          "description": "Parameter 1",
           "in": "query"
         }
       ]
@@ -127,9 +128,9 @@ MCPブリッジサーバーを起動します：
 }
 ```
 
-### 4. Claude Codeでの利用
+### 4. Usage with Claude Code
 
-Claude Codeで使用する場合の設定例：
+Configuration example for Claude Code:
 
 ```json
 {
@@ -142,70 +143,70 @@ Claude Codeで使用する場合の設定例：
 }
 ```
 
-## 利用可能なツール
+## Available Tools
 
-MCPブリッジサーバーが提供するツールの一覧：
+Tools provided by the MCP bridge server:
 
-### デフォルトツール（Mock APIサーバー使用時）
+### Default Tools (when using Mock API server)
 
-- `get_users` - 全ユーザー取得
-- `create_user` - ユーザー作成
-- `get_user` - 特定ユーザー取得
-- `update_user` - ユーザー更新
-- `delete_user` - ユーザー削除
-- `get_products` - 商品取得
-- `create_product` - 商品作成
-- `health_check` - ヘルスチェック
+- `get_users` - Get all users
+- `create_user` - Create user
+- `get_user` - Get specific user
+- `update_user` - Update user
+- `delete_user` - Delete user
+- `get_products` - Get products
+- `create_product` - Create product
+- `health_check` - Health check
 
-### 利用例
+### Usage Examples
 
 ```javascript
-// ユーザー一覧取得
+// Get user list
 await callTool("get_users", {});
 
-// 新しいユーザー作成
+// Create new user
 await callTool("create_user", {
-  name: "田中太郎",
-  email: "tanaka@example.com"
+  name: "John Doe",
+  email: "john@example.com"
 });
 
-// 特定ユーザー取得
+// Get specific user
 await callTool("get_user", {
   id: 1
 });
 
-// 商品をカテゴリで絞り込み
+// Filter products by category
 await callTool("get_products", {
   category: "Electronics"
 });
 ```
 
-## リソース
+## Resources
 
-MCPサーバーは以下のリソースを提供します：
+The MCP server provides the following resources:
 
-- `rest-api://docs` - REST APIの仕様書（JSON形式）
+- `rest-api://docs` - REST API specification (JSON format)
 
-## 開発
+## Development
 
-### テスト実行
+### Running Tests
 
 ```bash
-# Mock APIサーバーの起動
+# Start Mock API server
 go run ./cmd/mock-api &
 
-# MCPサーバーのテスト
+# Test MCP server
 echo '{"jsonrpc": "2.0", "id": 1, "method": "initialize", "params": {"protocolVersion": "2024-11-05", "capabilities": {}, "clientInfo": {"name": "test", "version": "1.0.0"}}}' | go run ./cmd/mcp-server
 ```
 
-### カスタムエンドポイントの追加
+### Adding Custom Endpoints
 
-設定ファイルの `endpoints` セクションに新しいエンドポイントを追加することで、カスタムAPIエンドポイントを利用できます。
+You can use custom API endpoints by adding them to the `endpoints` section in the configuration file.
 
-## ライセンス
+## License
 
 MIT License
 
-## 貢献
+## Contributing
 
-プルリクエストやイシューの報告を歓迎します。
+Pull requests and issue reports are welcome.
