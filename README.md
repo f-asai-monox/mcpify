@@ -6,6 +6,22 @@ A proxy server that enables REST APIs to be used as MCP (Model Context Protocol)
 
 MCP Bridge is a proxy server that allows existing REST APIs to be used as Model Context Protocol (MCP) servers. This enables REST APIs to be directly utilized by MCP clients such as Claude Code.
 
+## Project Significance
+
+### Technical Value
+- **Protocol Unification**: Converts existing REST APIs to MCP protocol, standardizing AI tool integration
+- **Adapter Layer**: Provides unified interface for handling different API formats through bridge functionality
+- **Type Safety**: JSON-RPC 2.0 compliant with schema-based type checking
+
+### Practical Value
+- **Leverage Existing Assets**: Directly utilize existing REST APIs with MCP clients (Claude Code, etc.) without creating new APIs
+- **Development Efficiency**: Add new APIs through configuration files only, no individual implementation required
+- **Authentication & Security**: Unified header management and error handling
+
+### Ecosystem Contribution
+- **MCP Adoption**: Contributes to MCP ecosystem expansion by making REST APIs MCP-compatible
+- **Interoperability**: Provides standardized method for promoting integration between different services
+
 ## Features
 
 - **REST API to MCP Conversion**: Automatically converts REST API endpoints to MCP tools
@@ -68,9 +84,6 @@ The API server starts at `http://localhost:8080` with the following endpoints:
 - `GET /users/{id}` - Get specific user
 - `PUT /users/{id}` - Update user
 - `DELETE /users/{id}` - Delete user
-- `GET /products` - Get all products
-- `GET /products?category={category}` - Get products by category
-- `POST /products` - Create product
 
 ### 2. Start MCP Server
 
