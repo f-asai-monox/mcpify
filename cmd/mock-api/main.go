@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -75,10 +76,52 @@ func usersHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func usersSearchHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	
+	if r.Method != "GET" {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+	
+	query := r.URL.Query().Get("q")
+	if query == "" {
+		http.Error(w, "Search query 'q' is required", http.StatusBadRequest)
+		return
+	}
+	
+	limitStr := r.URL.Query().Get("limit")
+	limit := 10 // default
+	if limitStr != "" {
+		if l, err := strconv.Atoi(limitStr); err == nil && l > 0 {
+			limit = l
+		}
+	}
+	
+	var results []User
+	query = strings.ToLower(query)
+	
+	for _, user := range users {
+		if strings.Contains(strings.ToLower(user.Name), query) {
+			results = append(results, user)
+			if len(results) >= limit {
+				break
+			}
+		}
+	}
+	
+	json.NewEncoder(w).Encode(results)
+}
+
 func userHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	
 	idStr := strings.TrimPrefix(r.URL.Path, "/users/")
+	if idStr == "search" {
+		usersSearchHandler(w, r)
+		return
+	}
+	
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
 		http.Error(w, "Invalid user ID", http.StatusBadRequest)
@@ -164,16 +207,23 @@ func healthHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
+	// Get port from environment variable, default to 8080
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
+	
 	http.HandleFunc("/health", corsHandler(healthHandler))
 	http.HandleFunc("/users", corsHandler(usersHandler))
 	http.HandleFunc("/users/", corsHandler(userHandler))
 	http.HandleFunc("/products", corsHandler(productsHandler))
 	
-	fmt.Println("Mock API Server starting on port 8080...")
+	fmt.Printf("Mock API Server starting on port %s...\n", port)
 	fmt.Println("Available endpoints:")
 	fmt.Println("  GET    /health")
 	fmt.Println("  GET    /users")
 	fmt.Println("  POST   /users")
+	fmt.Println("  GET    /users/search?q={query}&limit={limit}")
 	fmt.Println("  GET    /users/{id}")
 	fmt.Println("  PUT    /users/{id}")
 	fmt.Println("  DELETE /users/{id}")
@@ -181,7 +231,7 @@ func main() {
 	fmt.Println("  GET    /products?category={category}")
 	fmt.Println("  POST   /products")
 	
-	if err := http.ListenAndServe(":8080", nil); err != nil {
+	if err := http.ListenAndServe(":"+port, nil); err != nil {
 		log.Fatal("Server failed to start:", err)
 	}
 }
