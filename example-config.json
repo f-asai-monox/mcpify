@@ -1,6 +1,6 @@
 {
   "api": {
-    "baseUrl": "http://localhost:8080",
+    "baseUrl": "http://localhost:8081",
     "timeout": 30
   },
   "server": {
@@ -13,25 +13,68 @@
   },
   "endpoints": [
     {
-      "name": "custom_search",
-      "description": "Search users by name",
+      "name": "health",
+      "description": "Health check endpoint",
       "method": "GET",
-      "path": "/users/search",
+      "path": "/health",
+      "parameters": []
+    },
+    {
+      "name": "get_users",
+      "description": "Get all users",
+      "method": "GET",
+      "path": "/users",
+      "parameters": []
+    },
+    {
+      "name": "create_user",
+      "description": "Create a new user",
+      "method": "POST",
+      "path": "/users",
+      "parameters": []
+    },
+    {
+      "name": "get_user",
+      "description": "Get a specific user by ID",
+      "method": "GET",
+      "path": "/users/{id}",
       "parameters": [
         {
-          "name": "q",
-          "type": "string",
-          "required": true,
-          "description": "Search query",
-          "in": "query"
-        },
-        {
-          "name": "limit",
+          "name": "id",
           "type": "integer",
-          "required": false,
-          "description": "Maximum number of results",
-          "default": 10,
-          "in": "query"
+          "required": true,
+          "description": "User ID",
+          "in": "path"
+        }
+      ]
+    },
+    {
+      "name": "update_user",
+      "description": "Update a specific user by ID",
+      "method": "PUT",
+      "path": "/users/{id}",
+      "parameters": [
+        {
+          "name": "id",
+          "type": "integer",
+          "required": true,
+          "description": "User ID",
+          "in": "path"
+        }
+      ]
+    },
+    {
+      "name": "delete_user",
+      "description": "Delete a specific user by ID",
+      "method": "DELETE",
+      "path": "/users/{id}",
+      "parameters": [
+        {
+          "name": "id",
+          "type": "integer",
+          "required": true,
+          "description": "User ID",
+          "in": "path"
         }
       ]
     }
