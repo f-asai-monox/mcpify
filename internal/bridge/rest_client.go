@@ -12,7 +12,6 @@ import (
 )
 
 type RestClient struct {
-	baseURL    string
 	httpClient *http.Client
 	headers    map[string]string
 }
@@ -45,9 +44,8 @@ type APIResponse struct {
 	Error      string            `json:"error,omitempty"`
 }
 
-func NewRestClient(baseURL string) *RestClient {
+func NewRestClient() *RestClient {
 	return &RestClient{
-		baseURL: strings.TrimSuffix(baseURL, "/"),
 		httpClient: &http.Client{
 			Timeout: 30 * time.Second,
 		},
@@ -60,9 +58,9 @@ func (c *RestClient) SetHeader(key, value string) {
 }
 
 func (c *RestClient) MakeRequest(endpoint APIEndpoint, args map[string]interface{}) (*APIResponse, error) {
-	baseURL := c.baseURL
-	if endpoint.BaseURL != "" {
-		baseURL = endpoint.BaseURL
+	baseURL := endpoint.BaseURL
+	if baseURL == "" {
+		return nil, fmt.Errorf("endpoint BaseURL is required")
 	}
 
 	fullURL, err := c.buildURLWithBase(endpoint, args, baseURL)

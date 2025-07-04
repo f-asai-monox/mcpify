@@ -16,7 +16,7 @@ type MCPBridge struct {
 }
 
 func NewMCPBridge() *MCPBridge {
-	restClient := NewRestClient("")
+	restClient := NewRestClient()
 	restClient.SetHeader("Content-Type", "application/json")
 
 	bridge := &MCPBridge{
@@ -265,7 +265,7 @@ func (b *MCPBridge) Start() error {
 }
 
 func (b *MCPBridge) SetAPIBaseURL(baseURL string) {
-	b.restClient = NewRestClient(baseURL)
+	b.restClient = NewRestClient()
 	b.restClient.SetHeader("Content-Type", "application/json")
 }
 
