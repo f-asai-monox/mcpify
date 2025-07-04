@@ -1,11 +1,11 @@
 package types
 
 type JSONRPCMessage struct {
-	JSONRpc string      `json:"jsonrpc"`
-	ID      interface{} `json:"id,omitempty"`
-	Method  string      `json:"method,omitempty"`
-	Params  interface{} `json:"params,omitempty"`
-	Result  interface{} `json:"result,omitempty"`
+	JSONRpc string        `json:"jsonrpc"`
+	ID      interface{}   `json:"id,omitempty"`
+	Method  string        `json:"method,omitempty"`
+	Params  interface{}   `json:"params,omitempty"`
+	Result  interface{}   `json:"result,omitempty"`
 	Error   *JSONRPCError `json:"error,omitempty"`
 }
 
@@ -16,9 +16,9 @@ type JSONRPCError struct {
 }
 
 type InitializeParams struct {
-	ProtocolVersion string                 `json:"protocolVersion"`
-	Capabilities    ClientCapabilities     `json:"capabilities"`
-	ClientInfo      ClientInfo             `json:"clientInfo"`
+	ProtocolVersion string             `json:"protocolVersion"`
+	Capabilities    ClientCapabilities `json:"capabilities"`
+	ClientInfo      ClientInfo         `json:"clientInfo"`
 }
 
 type ClientCapabilities struct {
@@ -122,9 +122,9 @@ type ResourceContent struct {
 }
 
 type Prompt struct {
-	Name        string      `json:"name"`
-	Description string      `json:"description"`
-	Arguments   []Argument  `json:"arguments,omitempty"`
+	Name        string     `json:"name"`
+	Description string     `json:"description"`
+	Arguments   []Argument `json:"arguments,omitempty"`
 }
 
 type Argument struct {
@@ -143,7 +143,7 @@ type GetPromptParams struct {
 }
 
 type GetPromptResult struct {
-	Description string        `json:"description,omitempty"`
+	Description string          `json:"description,omitempty"`
 	Messages    []PromptMessage `json:"messages"`
 }
 
@@ -155,13 +155,13 @@ type PromptMessage struct {
 type LoggingLevel string
 
 const (
-	LoggingLevelDebug LoggingLevel = "debug"
-	LoggingLevelInfo  LoggingLevel = "info"
-	LoggingLevelNotice LoggingLevel = "notice"
-	LoggingLevelWarning LoggingLevel = "warning"
-	LoggingLevelError  LoggingLevel = "error"
-	LoggingLevelCritical LoggingLevel = "critical"
-	LoggingLevelAlert    LoggingLevel = "alert"
+	LoggingLevelDebug     LoggingLevel = "debug"
+	LoggingLevelInfo      LoggingLevel = "info"
+	LoggingLevelNotice    LoggingLevel = "notice"
+	LoggingLevelWarning   LoggingLevel = "warning"
+	LoggingLevelError     LoggingLevel = "error"
+	LoggingLevelCritical  LoggingLevel = "critical"
+	LoggingLevelAlert     LoggingLevel = "alert"
 	LoggingLevelEmergency LoggingLevel = "emergency"
 )
 

@@ -18,13 +18,13 @@ type MCPBridge struct {
 func NewMCPBridge() *MCPBridge {
 	restClient := NewRestClient("")
 	restClient.SetHeader("Content-Type", "application/json")
-	
+
 	bridge := &MCPBridge{
 		server:     mcp.NewServer(),
 		restClient: restClient,
 		endpoints:  []APIEndpoint{}, // Initialize empty, will be populated via AddCustomEndpoint
 	}
-	
+
 	bridge.setupMCPServer()
 	return bridge
 }
@@ -34,10 +34,10 @@ func (b *MCPBridge) setupMCPServer() {
 		tool := b.createToolFromEndpoint(endpoint)
 		b.server.AddTool(tool)
 	}
-	
+
 	b.server.SetToolHandler(b.handleToolCall)
 	b.server.SetResourceHandler(b.handleResourceRead)
-	
+
 	apiDocsResource := types.Resource{
 		URI:         "rest-api://docs",
 		Name:        "REST API Documentation",
@@ -53,29 +53,29 @@ func (b *MCPBridge) createToolFromEndpoint(endpoint APIEndpoint) types.Tool {
 		"properties": make(map[string]interface{}),
 		"required":   []string{},
 	}
-	
+
 	properties := schema["properties"].(map[string]interface{})
 	required := []string{}
-	
+
 	for _, param := range endpoint.Parameters {
 		paramSchema := map[string]interface{}{
 			"type":        b.convertParamType(param.Type),
 			"description": param.Description,
 		}
-		
+
 		if param.Default != nil {
 			paramSchema["default"] = param.Default
 		}
-		
+
 		properties[param.Name] = paramSchema
-		
+
 		if param.Required {
 			required = append(required, param.Name)
 		}
 	}
-	
+
 	schema["required"] = required
-	
+
 	return types.Tool{
 		Name:        endpoint.Name,
 		Description: fmt.Sprintf("%s (%s %s)", endpoint.Description, endpoint.Method, endpoint.Path),
@@ -104,7 +104,7 @@ func (b *MCPBridge) handleToolCall(name string, args map[string]interface{}) (*t
 			break
 		}
 	}
-	
+
 	if endpoint == nil {
 		return &types.CallToolResult{
 			Content: []types.ToolResult{
@@ -116,9 +116,9 @@ func (b *MCPBridge) handleToolCall(name string, args map[string]interface{}) (*t
 			IsError: true,
 		}, nil
 	}
-	
+
 	processedArgs := b.processArguments(args, endpoint.Parameters)
-	
+
 	response, err := b.restClient.MakeRequest(*endpoint, processedArgs)
 	if err != nil {
 		return &types.CallToolResult{
@@ -131,13 +131,13 @@ func (b *MCPBridge) handleToolCall(name string, args map[string]interface{}) (*t
 			IsError: true,
 		}, nil
 	}
-	
+
 	return b.formatAPIResponse(response), nil
 }
 
 func (b *MCPBridge) processArguments(args map[string]interface{}, params []APIParameter) map[string]interface{} {
 	processed := make(map[string]interface{})
-	
+
 	for key, value := range args {
 		var paramType string
 		for _, param := range params {
@@ -146,7 +146,7 @@ func (b *MCPBridge) processArguments(args map[string]interface{}, params []APIPa
 				break
 			}
 		}
-		
+
 		switch paramType {
 		case "integer", "int":
 			if str, ok := value.(string); ok {
@@ -182,7 +182,7 @@ func (b *MCPBridge) processArguments(args map[string]interface{}, params []APIPa
 			processed[key] = value
 		}
 	}
-	
+
 	return processed
 }
 
@@ -198,7 +198,7 @@ func (b *MCPBridge) formatAPIResponse(response *APIResponse) *types.CallToolResu
 			IsError: true,
 		}
 	}
-	
+
 	var resultText string
 	if response.Data != nil {
 		if jsonData, err := json.MarshalIndent(response.Data, "", "  "); err == nil {
@@ -209,7 +209,7 @@ func (b *MCPBridge) formatAPIResponse(response *APIResponse) *types.CallToolResu
 	} else {
 		resultText = fmt.Sprintf("Status: %d\n\nResponse:\n%s", response.StatusCode, response.Body)
 	}
-	
+
 	return &types.CallToolResult{
 		Content: []types.ToolResult{
 			{
@@ -228,16 +228,16 @@ func (b *MCPBridge) handleResourceRead(uri string) (*types.ReadResourceResult, e
 		for _, endpoint := range b.endpoints {
 			apisByName[endpoint.APIName] = append(apisByName[endpoint.APIName], endpoint)
 		}
-		
+
 		docsData := map[string]interface{}{
 			"apis": apisByName,
 		}
-		
+
 		jsonData, err := json.MarshalIndent(docsData, "", "  ")
 		if err != nil {
 			return nil, fmt.Errorf("error marshaling docs: %w", err)
 		}
-		
+
 		return &types.ReadResourceResult{
 			Contents: []types.ResourceContent{
 				{

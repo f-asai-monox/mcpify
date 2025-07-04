@@ -12,10 +12,10 @@ import (
 )
 
 type User struct {
-	ID       int    `json:"id"`
-	Name     string `json:"name"`
-	Email    string `json:"email"`
-	Created  string `json:"created"`
+	ID      int    `json:"id"`
+	Name    string `json:"name"`
+	Email   string `json:"email"`
+	Created string `json:"created"`
 }
 
 var users = []User{
@@ -28,19 +28,19 @@ func corsHandler(next http.HandlerFunc) http.HandlerFunc {
 		w.Header().Set("Access-Control-Allow-Origin", "*")
 		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
 		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
-		
+
 		if r.Method == "OPTIONS" {
 			w.WriteHeader(http.StatusOK)
 			return
 		}
-		
+
 		next(w, r)
 	}
 }
 
 func usersHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	
+
 	switch r.Method {
 	case "GET":
 		if err := json.NewEncoder(w).Encode(users); err != nil {
@@ -64,15 +64,15 @@ func usersHandler(w http.ResponseWriter, r *http.Request) {
 
 func userHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	
+
 	idStr := strings.TrimPrefix(r.URL.Path, "/users/")
-	
+
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
 		http.Error(w, "Invalid user ID", http.StatusBadRequest)
 		return
 	}
-	
+
 	var user *User
 	var index int
 	for i, u := range users {
@@ -82,12 +82,12 @@ func userHandler(w http.ResponseWriter, r *http.Request) {
 			break
 		}
 	}
-	
+
 	if user == nil {
 		http.Error(w, "User not found", http.StatusNotFound)
 		return
 	}
-	
+
 	switch r.Method {
 	case "GET":
 		json.NewEncoder(w).Encode(user)
@@ -112,9 +112,9 @@ func userHandler(w http.ResponseWriter, r *http.Request) {
 func healthHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	response := map[string]interface{}{
-		"status": "healthy",
+		"status":    "healthy",
 		"timestamp": time.Now().Format(time.RFC3339),
-		"version": "1.0.0",
+		"version":   "1.0.0",
 	}
 	json.NewEncoder(w).Encode(response)
 }
@@ -125,11 +125,11 @@ func main() {
 	if port == "" {
 		port = "8080"
 	}
-	
+
 	http.HandleFunc("/health", corsHandler(healthHandler))
 	http.HandleFunc("/users", corsHandler(usersHandler))
 	http.HandleFunc("/users/", corsHandler(userHandler))
-	
+
 	fmt.Printf("Mock API Server starting on port %s...\n", port)
 	fmt.Println("Available endpoints:")
 	fmt.Println("  GET    /health")
@@ -138,7 +138,7 @@ func main() {
 	fmt.Println("  GET    /users/{id}")
 	fmt.Println("  PUT    /users/{id}")
 	fmt.Println("  DELETE /users/{id}")
-	
+
 	if err := http.ListenAndServe(":"+port, nil); err != nil {
 		log.Fatal("Server failed to start:", err)
 	}

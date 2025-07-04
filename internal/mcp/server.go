@@ -14,15 +14,15 @@ import (
 
 type Server struct {
 	capabilities    types.ServerCapabilities
-	tools          []types.Tool
-	resources      []types.Resource
-	prompts        []types.Prompt
-	reader         *bufio.Scanner
-	writer         io.Writer
-	initialized    bool
-	toolHandler    func(string, map[string]interface{}) (*types.CallToolResult, error)
+	tools           []types.Tool
+	resources       []types.Resource
+	prompts         []types.Prompt
+	reader          *bufio.Scanner
+	writer          io.Writer
+	initialized     bool
+	toolHandler     func(string, map[string]interface{}) (*types.CallToolResult, error)
 	resourceHandler func(string) (*types.ReadResourceResult, error)
-	promptHandler  func(string, map[string]interface{}) (*types.GetPromptResult, error)
+	promptHandler   func(string, map[string]interface{}) (*types.GetPromptResult, error)
 }
 
 func NewServer() *Server {
@@ -51,22 +51,22 @@ func (s *Server) Start() error {
 		if line == "" {
 			continue
 		}
-		
+
 		var msg types.JSONRPCMessage
 		if err := json.Unmarshal([]byte(line), &msg); err != nil {
 			s.sendError(nil, -32700, "Parse error", err)
 			continue
 		}
-		
+
 		if err := s.handleMessage(&msg); err != nil {
 			log.Printf("Error handling message: %v", err)
 		}
 	}
-	
+
 	if err := s.reader.Err(); err != nil {
 		return fmt.Errorf("error reading from stdin: %w", err)
 	}
-	
+
 	return nil
 }
 
@@ -102,7 +102,7 @@ func (s *Server) handleInitialize(msg *types.JSONRPCMessage) error {
 	if msg.ID == nil {
 		return fmt.Errorf("initialize request must have an ID")
 	}
-	
+
 	var params types.InitializeParams
 	if msg.Params != nil {
 		paramsBytes, err := json.Marshal(msg.Params)
@@ -115,7 +115,7 @@ func (s *Server) handleInitialize(msg *types.JSONRPCMessage) error {
 			return nil
 		}
 	}
-	
+
 	result := types.InitializeResult{
 		ProtocolVersion: "2024-11-05",
 		Capabilities:    s.capabilities,
@@ -124,7 +124,7 @@ func (s *Server) handleInitialize(msg *types.JSONRPCMessage) error {
 			Version: "1.0.0",
 		},
 	}
-	
+
 	return s.sendResult(msg.ID, result)
 }
 
@@ -137,11 +137,11 @@ func (s *Server) handleToolsList(msg *types.JSONRPCMessage) error {
 	if msg.ID == nil {
 		return fmt.Errorf("tools/list request must have an ID")
 	}
-	
+
 	result := types.ToolsListResult{
 		Tools: s.tools,
 	}
-	
+
 	return s.sendResult(msg.ID, result)
 }
 
@@ -149,7 +149,7 @@ func (s *Server) handleToolsCall(msg *types.JSONRPCMessage) error {
 	if msg.ID == nil {
 		return fmt.Errorf("tools/call request must have an ID")
 	}
-	
+
 	var params types.CallToolParams
 	if msg.Params != nil {
 		paramsBytes, err := json.Marshal(msg.Params)
@@ -162,13 +162,13 @@ func (s *Server) handleToolsCall(msg *types.JSONRPCMessage) error {
 			return nil
 		}
 	}
-	
+
 	result, err := s.callTool(params.Name, params.Arguments)
 	if err != nil {
 		s.sendError(msg.ID, -32603, "Internal error", err)
 		return nil
 	}
-	
+
 	return s.sendResult(msg.ID, result)
 }
 
@@ -176,11 +176,11 @@ func (s *Server) handleResourcesList(msg *types.JSONRPCMessage) error {
 	if msg.ID == nil {
 		return fmt.Errorf("resources/list request must have an ID")
 	}
-	
+
 	result := types.ResourcesListResult{
 		Resources: s.resources,
 	}
-	
+
 	return s.sendResult(msg.ID, result)
 }
 
@@ -188,7 +188,7 @@ func (s *Server) handleResourcesRead(msg *types.JSONRPCMessage) error {
 	if msg.ID == nil {
 		return fmt.Errorf("resources/read request must have an ID")
 	}
-	
+
 	var params types.ReadResourceParams
 	if msg.Params != nil {
 		paramsBytes, err := json.Marshal(msg.Params)
@@ -201,13 +201,13 @@ func (s *Server) handleResourcesRead(msg *types.JSONRPCMessage) error {
 			return nil
 		}
 	}
-	
+
 	result, err := s.readResource(params.URI)
 	if err != nil {
 		s.sendError(msg.ID, -32603, "Internal error", err)
 		return nil
 	}
-	
+
 	return s.sendResult(msg.ID, result)
 }
 
@@ -215,11 +215,11 @@ func (s *Server) handlePromptsList(msg *types.JSONRPCMessage) error {
 	if msg.ID == nil {
 		return fmt.Errorf("prompts/list request must have an ID")
 	}
-	
+
 	result := types.PromptsListResult{
 		Prompts: s.prompts,
 	}
-	
+
 	return s.sendResult(msg.ID, result)
 }
 
@@ -227,7 +227,7 @@ func (s *Server) handlePromptsGet(msg *types.JSONRPCMessage) error {
 	if msg.ID == nil {
 		return fmt.Errorf("prompts/get request must have an ID")
 	}
-	
+
 	var params types.GetPromptParams
 	if msg.Params != nil {
 		paramsBytes, err := json.Marshal(msg.Params)
@@ -240,13 +240,13 @@ func (s *Server) handlePromptsGet(msg *types.JSONRPCMessage) error {
 			return nil
 		}
 	}
-	
+
 	result, err := s.getPrompt(params.Name, params.Arguments)
 	if err != nil {
 		s.sendError(msg.ID, -32603, "Internal error", err)
 		return nil
 	}
-	
+
 	return s.sendResult(msg.ID, result)
 }
 
@@ -254,7 +254,7 @@ func (s *Server) handlePing(msg *types.JSONRPCMessage) error {
 	if msg.ID == nil {
 		return fmt.Errorf("ping request must have an ID")
 	}
-	
+
 	return s.sendResult(msg.ID, map[string]interface{}{})
 }
 
@@ -285,7 +285,7 @@ func (s *Server) sendMessage(msg types.JSONRPCMessage) error {
 	if err != nil {
 		return fmt.Errorf("error marshaling message: %w", err)
 	}
-	
+
 	_, err = fmt.Fprintf(s.writer, "%s\n", string(data))
 	return err
 }
@@ -318,7 +318,7 @@ func (s *Server) callTool(name string, args map[string]interface{}) (*types.Call
 	if s.toolHandler != nil {
 		return s.toolHandler(name, args)
 	}
-	
+
 	return &types.CallToolResult{
 		Content: []types.ToolResult{
 			{
@@ -334,7 +334,7 @@ func (s *Server) readResource(uri string) (*types.ReadResourceResult, error) {
 	if s.resourceHandler != nil {
 		return s.resourceHandler(uri)
 	}
-	
+
 	return &types.ReadResourceResult{
 		Contents: []types.ResourceContent{
 			{
@@ -350,7 +350,7 @@ func (s *Server) getPrompt(name string, args map[string]interface{}) (*types.Get
 	if s.promptHandler != nil {
 		return s.promptHandler(name, args)
 	}
-	
+
 	return &types.GetPromptResult{
 		Description: fmt.Sprintf("Prompt '%s' not found", name),
 		Messages: []types.PromptMessage{

@@ -7,63 +7,9 @@ import (
 	"log"
 	"os"
 	"strings"
+
+	"mcp-bridge/pkg/types"
 )
-
-// JSON-RPC 2.0 message structure
-type JSONRPCMessage struct {
-	JSONRpc string        `json:"jsonrpc"`
-	ID      interface{}   `json:"id,omitempty"`
-	Method  string        `json:"method,omitempty"`
-	Params  interface{}   `json:"params,omitempty"`
-	Result  interface{}   `json:"result,omitempty"`
-	Error   *JSONRPCError `json:"error,omitempty"`
-}
-
-type JSONRPCError struct {
-	Code    int         `json:"code"`
-	Message string      `json:"message"`
-	Data    interface{} `json:"data,omitempty"`
-}
-
-// MCP Initialize structures
-type InitializeParams struct {
-	ProtocolVersion string                 `json:"protocolVersion"`
-	Capabilities    map[string]interface{} `json:"capabilities"`
-	ClientInfo      ClientInfo             `json:"clientInfo"`
-}
-
-type ClientInfo struct {
-	Name    string `json:"name"`
-	Version string `json:"version"`
-}
-
-type InitializeResult struct {
-	ProtocolVersion string             `json:"protocolVersion"`
-	Capabilities    ServerCapabilities `json:"capabilities"`
-	ServerInfo      ServerInfo         `json:"serverInfo"`
-}
-
-type ServerCapabilities struct {
-	Tools     *ToolsCapability     `json:"tools,omitempty"`
-	Resources *ResourcesCapability `json:"resources,omitempty"`
-	Logging   *LoggingCapability   `json:"logging,omitempty"`
-}
-
-type ToolsCapability struct {
-	ListChanged bool `json:"listChanged"`
-}
-
-type ResourcesCapability struct {
-	Subscribe   bool `json:"subscribe"`
-	ListChanged bool `json:"listChanged"`
-}
-
-type LoggingCapability struct{}
-
-type ServerInfo struct {
-	Name    string `json:"name"`
-	Version string `json:"version"`
-}
 
 func main() {
 	log.SetOutput(os.Stderr)
@@ -78,7 +24,7 @@ func main() {
 			continue
 		}
 
-		var msg JSONRPCMessage
+		var msg types.JSONRPCMessage
 		if err := json.Unmarshal([]byte(line), &msg); err != nil {
 			log.Printf("Parse error: %v", err)
 			sendError(nil, -32700, "Parse error", err)
@@ -105,21 +51,21 @@ func main() {
 	}
 }
 
-func handleInitialize(msg *JSONRPCMessage) {
+func handleInitialize(msg *types.JSONRPCMessage) {
 	log.Println("Handling initialize request")
-	result := InitializeResult{
+	result := types.InitializeResult{
 		ProtocolVersion: "2024-11-05",
-		Capabilities: ServerCapabilities{
-			Tools: &ToolsCapability{
+		Capabilities: types.ServerCapabilities{
+			Tools: &types.ToolsCapability{
 				ListChanged: true,
 			},
-			Resources: &ResourcesCapability{
+			Resources: &types.ResourcesCapability{
 				Subscribe:   false,
 				ListChanged: true,
 			},
-			Logging: &LoggingCapability{},
+			Logging: &types.LoggingCapability{},
 		},
-		ServerInfo: ServerInfo{
+		ServerInfo: types.ServerInfo{
 			Name:    "mvp-mcp-server",
 			Version: "1.0.0",
 		},
@@ -127,7 +73,7 @@ func handleInitialize(msg *JSONRPCMessage) {
 	sendResult(msg.ID, result)
 }
 
-func handleToolsList(msg *JSONRPCMessage) {
+func handleToolsList(msg *types.JSONRPCMessage) {
 	log.Println("Handling tools/list request")
 	result := map[string]interface{}{
 		"tools": []map[string]interface{}{
@@ -150,7 +96,7 @@ func handleToolsList(msg *JSONRPCMessage) {
 	sendResult(msg.ID, result)
 }
 
-func handleResourcesList(msg *JSONRPCMessage) {
+func handleResourcesList(msg *types.JSONRPCMessage) {
 	log.Println("Handling resources/list request")
 	result := map[string]interface{}{
 		"resources": []map[string]interface{}{},
@@ -158,13 +104,13 @@ func handleResourcesList(msg *JSONRPCMessage) {
 	sendResult(msg.ID, result)
 }
 
-func handlePing(msg *JSONRPCMessage) {
+func handlePing(msg *types.JSONRPCMessage) {
 	log.Println("Handling ping request")
 	sendResult(msg.ID, map[string]interface{}{})
 }
 
 func sendResult(id interface{}, result interface{}) {
-	response := JSONRPCMessage{
+	response := types.JSONRPCMessage{
 		JSONRpc: "2.0",
 		ID:      id,
 		Result:  result,
@@ -173,10 +119,10 @@ func sendResult(id interface{}, result interface{}) {
 }
 
 func sendError(id interface{}, code int, message string, data interface{}) {
-	response := JSONRPCMessage{
+	response := types.JSONRPCMessage{
 		JSONRpc: "2.0",
 		ID:      id,
-		Error: &JSONRPCError{
+		Error: &types.JSONRPCError{
 			Code:    code,
 			Message: message,
 			Data:    data,
@@ -185,7 +131,7 @@ func sendError(id interface{}, code int, message string, data interface{}) {
 	sendMessage(response)
 }
 
-func sendMessage(msg JSONRPCMessage) {
+func sendMessage(msg types.JSONRPCMessage) {
 	data, err := json.Marshal(msg)
 	if err != nil {
 		log.Printf("Error marshaling message: %v", err)

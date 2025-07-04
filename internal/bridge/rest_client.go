@@ -59,10 +59,6 @@ func (c *RestClient) SetHeader(key, value string) {
 	c.headers[key] = value
 }
 
-func (c *RestClient) SetTimeout(timeout time.Duration) {
-	c.httpClient.Timeout = timeout
-}
-
 func (c *RestClient) MakeRequest(endpoint APIEndpoint, args map[string]interface{}) (*APIResponse, error) {
 	baseURL := c.baseURL
 	if endpoint.BaseURL != "" {
