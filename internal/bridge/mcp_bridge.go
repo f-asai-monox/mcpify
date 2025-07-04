@@ -15,8 +15,8 @@ type MCPBridge struct {
 	endpoints  []APIEndpoint
 }
 
-func NewMCPBridge(apiBaseURL string) *MCPBridge {
-	restClient := NewRestClient(apiBaseURL)
+func NewMCPBridge() *MCPBridge {
+	restClient := NewRestClient("")
 	restClient.SetHeader("Content-Type", "application/json")
 	
 	bridge := &MCPBridge{
@@ -224,9 +224,13 @@ func (b *MCPBridge) formatAPIResponse(response *APIResponse) *types.CallToolResu
 func (b *MCPBridge) handleResourceRead(uri string) (*types.ReadResourceResult, error) {
 	switch uri {
 	case "rest-api://docs":
+		apisByName := make(map[string][]APIEndpoint)
+		for _, endpoint := range b.endpoints {
+			apisByName[endpoint.APIName] = append(apisByName[endpoint.APIName], endpoint)
+		}
+		
 		docsData := map[string]interface{}{
-			"endpoints": b.endpoints,
-			"baseURL":   b.restClient.baseURL,
+			"apis": apisByName,
 		}
 		
 		jsonData, err := json.MarshalIndent(docsData, "", "  ")

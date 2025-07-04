@@ -34,17 +34,19 @@ MCP Bridge は、既存の REST API を Model Context Protocol (MCP) サーバ�
 ```
 mcp-bridge/
 ├── cmd/
-│   ├── mcp-server/     # MCPサーバー実行ファイル
-│   └── mock-api/       # REST API mockサーバー
+│   ├── mcp-server/        # MCPサーバー実行ファイル
+│   ├── mock-api/          # Users API mockサーバー
+│   └── mock-products-api/ # Products API mockサーバー
 ├── internal/
-│   ├── mcp/           # MCP実装
-│   ├── bridge/        # REST API変換ロジック
-│   └── config/        # 設定管理
+│   ├── mcp/              # MCP実装
+│   ├── bridge/           # REST API変換ロジック
+│   └── config/           # 設定管理
 ├── pkg/
-│   └── types/         # 共通型定義
+│   └── types/            # 共通型定義
 ├── go.mod
 ├── go.sum
-└── README.md
+├── README.md
+└── README-ja.md          # Japanese version
 ```
 
 ## インストール・ビルド
@@ -60,6 +62,7 @@ go build -o bin/mcp-server ./cmd/mcp-server
 
 # Mock APIサーバーのビルド
 go build -o bin/mock-api ./cmd/mock-api
+go build -o bin/mock-products-api ./cmd/mock-products-api
 ```
 
 ## 使用方法
@@ -69,13 +72,18 @@ go build -o bin/mock-api ./cmd/mock-api
 テスト用のREST APIサーバーを起動します：
 
 ```bash
-./bin/mock-api
+# Users APIサーバーの起動（ポート 8081）
+PORT=8081 ./bin/mock-api
+
+# Products APIサーバーの起動（ポート 8082）
+./bin/mock-products-api
 
 # または直接実行
-go run ./cmd/mock-api
+PORT=8081 go run ./cmd/mock-api &
+go run ./cmd/mock-products-api &
 ```
 
-APIサーバーは `http://localhost:8080` で起動し、以下のエンドポイントが利用できます：
+Users APIサーバーは `http://localhost:8081` で起動し、以下のエンドポイントが利用できます：
 
 - `GET /health` - ヘルスチェック
 - `GET /users` - 全ユーザー取得
@@ -83,6 +91,11 @@ APIサーバーは `http://localhost:8080` で起動し、以下のエンドポ�
 - `GET /users/{id}` - 特定ユーザー取得
 - `PUT /users/{id}` - ユーザー更新
 - `DELETE /users/{id}` - ユーザー削除
+
+Products APIサーバーは `http://localhost:8082` で起動し、以下のエンドポイントが利用できます：
+
+- `GET /products` - 全商品取得
+- `GET /products/{id}` - 特定商品取得
 
 ### 2. MCPサーバーの起動
 
@@ -107,36 +120,88 @@ MCPブリッジサーバーを起動します：
 
 ```json
 {
-  "api": {
-    "baseUrl": "http://localhost:8080",
-    "timeout": 30
-  },
+  "apis": [
+    {
+      "name": "users-api",
+      "baseUrl": "http://localhost:8080",
+      "timeout": 30,
+      "endpoints": [
+        {
+          "name": "health",
+          "description": "ヘルスチェックエンドポイント",
+          "method": "GET",
+          "path": "/health",
+          "parameters": []
+        },
+        {
+          "name": "get_users",
+          "description": "全ユーザー取得",
+          "method": "GET",
+          "path": "/users",
+          "parameters": []
+        },
+        {
+          "name": "create_user",
+          "description": "新しいユーザー作成",
+          "method": "POST",
+          "path": "/users",
+          "parameters": []
+        },
+        {
+          "name": "get_user",
+          "description": "特定ユーザーをIDで取得",
+          "method": "GET",
+          "path": "/users/{id}",
+          "parameters": [
+            {
+              "name": "id",
+              "type": "integer",
+              "required": true,
+              "description": "ユーザーID",
+              "in": "path"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "products-api",
+      "baseUrl": "http://localhost:8082",
+      "timeout": 30,
+      "endpoints": [
+        {
+          "name": "get_products",
+          "description": "全商品取得",
+          "method": "GET",
+          "path": "/products",
+          "parameters": []
+        },
+        {
+          "name": "get_product",
+          "description": "特定商品をIDで取得",
+          "method": "GET",
+          "path": "/products/{id}",
+          "parameters": [
+            {
+              "name": "id",
+              "type": "integer",
+              "required": true,
+              "description": "商品ID",
+              "in": "path"
+            }
+          ]
+        }
+      ]
+    }
+  ],
   "server": {
     "name": "mcp-bridge",
     "version": "1.0.0",
     "description": "REST API to MCP Bridge Server"
   },
   "headers": {
-    "Content-Type": "application/json",
-    "Authorization": "Bearer your-token-here"
-  },
-  "endpoints": [
-    {
-      "name": "custom_endpoint",
-      "description": "カスタムエンドポイント",
-      "method": "GET",
-      "path": "/api/custom",
-      "parameters": [
-        {
-          "name": "param1",
-          "type": "string",
-          "required": true,
-          "description": "パラメータ1",
-          "in": "query"
-        }
-      ]
-    }
-  ]
+    "Content-Type": "application/json"
+  }
 }
 ```
 
@@ -159,20 +224,23 @@ Claude Codeで使用する場合の設定例：
 
 MCPブリッジサーバーが提供するツールの一覧：
 
-### デフォルトツール（Mock APIサーバー使用時）
+### デフォルトツール（設定例を使用した場合）
 
+- `health` - ヘルスチェックエンドポイント
 - `get_users` - 全ユーザー取得
 - `create_user` - ユーザー作成
 - `get_user` - 特定ユーザー取得
 - `update_user` - ユーザー更新
 - `delete_user` - ユーザー削除
-- `get_products` - 商品取得
-- `create_product` - 商品作成
-- `health_check` - ヘルスチェック
+- `get_products` - 全商品取得
+- `get_product` - 特定商品取得
 
 ### 利用例
 
 ```javascript
+// ヘルスチェック
+await callTool("health", {});
+
 // ユーザー一覧取得
 await callTool("get_users", {});
 
@@ -187,9 +255,12 @@ await callTool("get_user", {
   id: 1
 });
 
-// 商品をカテゴリで絞り込み
-await callTool("get_products", {
-  category: "Electronics"
+// 全商品取得
+await callTool("get_products", {});
+
+// 特定商品取得
+await callTool("get_product", {
+  id: 1
 });
 ```
 

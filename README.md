@@ -34,18 +34,19 @@ MCP Bridge is a proxy server that allows existing REST APIs to be used as Model 
 ```
 mcp-bridge/
 ├── cmd/
-│   ├── mcp-server/     # MCP server executable
-│   └── mock-api/       # REST API mock server
+│   ├── mcp-server/        # MCP server executable
+│   ├── mock-api/          # Users API mock server
+│   └── mock-products-api/ # Products API mock server
 ├── internal/
-│   ├── mcp/           # MCP implementation
-│   ├── bridge/        # REST API conversion logic
-│   └── config/        # Configuration management
+│   ├── mcp/              # MCP implementation
+│   ├── bridge/           # REST API conversion logic
+│   └── config/           # Configuration management
 ├── pkg/
-│   └── types/         # Common type definitions
+│   └── types/            # Common type definitions
 ├── go.mod
 ├── go.sum
 ├── README.md
-└── README-ja.md       # Japanese version
+└── README-ja.md          # Japanese version
 ```
 
 ## Installation & Build
@@ -59,24 +60,30 @@ mcp-bridge/
 # Build MCP server
 go build -o bin/mcp-server ./cmd/mcp-server
 
-# Build Mock API server
+# Build Mock API servers
 go build -o bin/mock-api ./cmd/mock-api
+go build -o bin/mock-products-api ./cmd/mock-products-api
 ```
 
 ## Usage
 
-### 1. Start Mock API Server
+### 1. Start Mock API Servers
 
-Start the test REST API server:
+Start the test REST API servers:
 
 ```bash
-./bin/mock-api
+# Start Users API server (port 8081)
+PORT=8081 ./bin/mock-api
+
+# Start Products API server (port 8082)
+./bin/mock-products-api
 
 # Or run directly
-go run ./cmd/mock-api
+PORT=8081 go run ./cmd/mock-api &
+go run ./cmd/mock-products-api &
 ```
 
-The API server starts at `http://localhost:8080` with the following endpoints:
+The Users API server starts at `http://localhost:8081` with the following endpoints:
 
 - `GET /health` - Health check
 - `GET /users` - Get all users
@@ -84,6 +91,11 @@ The API server starts at `http://localhost:8080` with the following endpoints:
 - `GET /users/{id}` - Get specific user
 - `PUT /users/{id}` - Update user
 - `DELETE /users/{id}` - Delete user
+
+The Products API server starts at `http://localhost:8082` with the following endpoints:
+
+- `GET /products` - Get all products
+- `GET /products/{id}` - Get specific product
 
 ### 2. Start MCP Server
 
@@ -108,36 +120,88 @@ Example configuration file (`config.json`):
 
 ```json
 {
-  "api": {
-    "baseUrl": "http://localhost:8080",
-    "timeout": 30
-  },
+  "apis": [
+    {
+      "name": "users-api",
+      "baseUrl": "http://localhost:8080",
+      "timeout": 30,
+      "endpoints": [
+        {
+          "name": "health",
+          "description": "Health check endpoint",
+          "method": "GET",
+          "path": "/health",
+          "parameters": []
+        },
+        {
+          "name": "get_users",
+          "description": "Get all users",
+          "method": "GET",
+          "path": "/users",
+          "parameters": []
+        },
+        {
+          "name": "create_user",
+          "description": "Create a new user",
+          "method": "POST",
+          "path": "/users",
+          "parameters": []
+        },
+        {
+          "name": "get_user",
+          "description": "Get a specific user by ID",
+          "method": "GET",
+          "path": "/users/{id}",
+          "parameters": [
+            {
+              "name": "id",
+              "type": "integer",
+              "required": true,
+              "description": "User ID",
+              "in": "path"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "products-api",
+      "baseUrl": "http://localhost:8082",
+      "timeout": 30,
+      "endpoints": [
+        {
+          "name": "get_products",
+          "description": "Get all products",
+          "method": "GET",
+          "path": "/products",
+          "parameters": []
+        },
+        {
+          "name": "get_product",
+          "description": "Get a specific product by ID",
+          "method": "GET",
+          "path": "/products/{id}",
+          "parameters": [
+            {
+              "name": "id",
+              "type": "integer",
+              "required": true,
+              "description": "Product ID",
+              "in": "path"
+            }
+          ]
+        }
+      ]
+    }
+  ],
   "server": {
     "name": "mcp-bridge",
     "version": "1.0.0",
     "description": "REST API to MCP Bridge Server"
   },
   "headers": {
-    "Content-Type": "application/json",
-    "Authorization": "Bearer your-token-here"
-  },
-  "endpoints": [
-    {
-      "name": "custom_endpoint",
-      "description": "Custom endpoint",
-      "method": "GET",
-      "path": "/api/custom",
-      "parameters": [
-        {
-          "name": "param1",
-          "type": "string",
-          "required": true,
-          "description": "Parameter 1",
-          "in": "query"
-        }
-      ]
-    }
-  ]
+    "Content-Type": "application/json"
+  }
 }
 ```
 
@@ -160,20 +224,23 @@ Configuration example for Claude Code:
 
 Tools provided by the MCP bridge server:
 
-### Default Tools (when using Mock API server)
+### Default Tools (when using example configuration)
 
+- `health` - Health check endpoint
 - `get_users` - Get all users
 - `create_user` - Create user
 - `get_user` - Get specific user
 - `update_user` - Update user
 - `delete_user` - Delete user
 - `get_products` - Get products
-- `create_product` - Create product
-- `health_check` - Health check
+- `get_product` - Get specific product
 
 ### Usage Examples
 
 ```javascript
+// Health check
+await callTool("health", {});
+
 // Get user list
 await callTool("get_users", {});
 
@@ -188,9 +255,12 @@ await callTool("get_user", {
   id: 1
 });
 
-// Filter products by category
-await callTool("get_products", {
-  category: "Electronics"
+// Get all products
+await callTool("get_products", {});
+
+// Get specific product
+await callTool("get_product", {
+  id: 1
 });
 ```
 

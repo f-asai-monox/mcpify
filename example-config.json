@@ -1,8 +1,108 @@
 {
-  "api": {
-    "baseUrl": "http://localhost:8081",
-    "timeout": 30
-  },
+  "apis": [
+    {
+      "name": "users-api",
+      "baseUrl": "http://localhost:8081",
+      "timeout": 30,
+      "endpoints": [
+        {
+          "name": "health",
+          "description": "Health check endpoint",
+          "method": "GET",
+          "path": "/health",
+          "parameters": []
+        },
+        {
+          "name": "get_users",
+          "description": "Get all users",
+          "method": "GET",
+          "path": "/users",
+          "parameters": []
+        },
+        {
+          "name": "create_user",
+          "description": "Create a new user",
+          "method": "POST",
+          "path": "/users",
+          "parameters": []
+        },
+        {
+          "name": "get_user",
+          "description": "Get a specific user by ID",
+          "method": "GET",
+          "path": "/users/{id}",
+          "parameters": [
+            {
+              "name": "id",
+              "type": "integer",
+              "required": true,
+              "description": "User ID",
+              "in": "path"
+            }
+          ]
+        },
+        {
+          "name": "update_user",
+          "description": "Update a specific user by ID",
+          "method": "PUT",
+          "path": "/users/{id}",
+          "parameters": [
+            {
+              "name": "id",
+              "type": "integer",
+              "required": true,
+              "description": "User ID",
+              "in": "path"
+            }
+          ]
+        },
+        {
+          "name": "delete_user",
+          "description": "Delete a specific user by ID",
+          "method": "DELETE",
+          "path": "/users/{id}",
+          "parameters": [
+            {
+              "name": "id",
+              "type": "integer",
+              "required": true,
+              "description": "User ID",
+              "in": "path"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "products-api",
+      "baseUrl": "http://localhost:8082",
+      "timeout": 30,
+      "endpoints": [
+        {
+          "name": "get_products",
+          "description": "Get all products",
+          "method": "GET",
+          "path": "/products",
+          "parameters": []
+        },
+        {
+          "name": "get_product",
+          "description": "Get a specific product by ID",
+          "method": "GET",
+          "path": "/products/{id}",
+          "parameters": [
+            {
+              "name": "id",
+              "type": "integer",
+              "required": true,
+              "description": "Product ID",
+              "in": "path"
+            }
+          ]
+        }
+      ]
+    }
+  ],
   "server": {
     "name": "mcp-bridge",
     "version": "1.0.0",
@@ -10,73 +110,5 @@
   },
   "headers": {
     "Content-Type": "application/json"
-  },
-  "endpoints": [
-    {
-      "name": "health",
-      "description": "Health check endpoint",
-      "method": "GET",
-      "path": "/health",
-      "parameters": []
-    },
-    {
-      "name": "get_users",
-      "description": "Get all users",
-      "method": "GET",
-      "path": "/users",
-      "parameters": []
-    },
-    {
-      "name": "create_user",
-      "description": "Create a new user",
-      "method": "POST",
-      "path": "/users",
-      "parameters": []
-    },
-    {
-      "name": "get_user",
-      "description": "Get a specific user by ID",
-      "method": "GET",
-      "path": "/users/{id}",
-      "parameters": [
-        {
-          "name": "id",
-          "type": "integer",
-          "required": true,
-          "description": "User ID",
-          "in": "path"
-        }
-      ]
-    },
-    {
-      "name": "update_user",
-      "description": "Update a specific user by ID",
-      "method": "PUT",
-      "path": "/users/{id}",
-      "parameters": [
-        {
-          "name": "id",
-          "type": "integer",
-          "required": true,
-          "description": "User ID",
-          "in": "path"
-        }
-      ]
-    },
-    {
-      "name": "delete_user",
-      "description": "Delete a specific user by ID",
-      "method": "DELETE",
-      "path": "/users/{id}",
-      "parameters": [
-        {
-          "name": "id",
-          "type": "integer",
-          "required": true,
-          "description": "User ID",
-          "in": "path"
-        }
-      ]
-    }
-  ]
+  }
 }

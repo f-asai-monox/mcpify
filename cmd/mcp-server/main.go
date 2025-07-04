@@ -28,42 +28,46 @@ func main() {
 		log.Fatalf("Error loading config: %v", err)
 	}
 
-	if *apiURL != "" {
-		cfg.API.BaseURL = *apiURL
+	if *apiURL != "" && len(cfg.APIs) > 0 {
+		cfg.APIs[0].BaseURL = *apiURL
 	}
 
 	if err := cfg.Validate(); err != nil {
 		log.Fatalf("Invalid configuration: %v", err)
 	}
 
-	mcpBridge := bridge.NewMCPBridge(cfg.API.BaseURL)
+	mcpBridge := bridge.NewMCPBridge()
 
 	for key, value := range cfg.Headers {
 		mcpBridge.SetAPIHeader(key, value)
 	}
 
-	for _, endpoint := range cfg.Endpoints {
-		apiEndpoint := bridge.APIEndpoint{
-			Name:        endpoint.Name,
-			Description: endpoint.Description,
-			Method:      endpoint.Method,
-			Path:        endpoint.Path,
-			Headers:     endpoint.Headers,
-			Parameters:  make([]bridge.APIParameter, len(endpoint.Parameters)),
-		}
-
-		for i, param := range endpoint.Parameters {
-			apiEndpoint.Parameters[i] = bridge.APIParameter{
-				Name:        param.Name,
-				Type:        param.Type,
-				Required:    param.Required,
-				Description: param.Description,
-				Default:     param.Default,
-				In:          param.In,
+	for _, api := range cfg.APIs {
+		for _, endpoint := range api.Endpoints {
+			apiEndpoint := bridge.APIEndpoint{
+				Name:        api.Name + "__" + endpoint.Name,
+				Description: endpoint.Description,
+				Method:      endpoint.Method,
+				Path:        endpoint.Path,
+				Headers:     endpoint.Headers,
+				Parameters:  make([]bridge.APIParameter, len(endpoint.Parameters)),
+				APIName:     api.Name,
+				BaseURL:     api.BaseURL,
 			}
-		}
 
-		mcpBridge.AddCustomEndpoint(apiEndpoint)
+			for i, param := range endpoint.Parameters {
+				apiEndpoint.Parameters[i] = bridge.APIParameter{
+					Name:        param.Name,
+					Type:        param.Type,
+					Required:    param.Required,
+					Description: param.Description,
+					Default:     param.Default,
+					In:          param.In,
+				}
+			}
+
+			mcpBridge.AddCustomEndpoint(apiEndpoint)
+		}
 	}
 
 	if err := mcpBridge.Start(); err != nil {

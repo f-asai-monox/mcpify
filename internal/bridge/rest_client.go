@@ -24,6 +24,8 @@ type APIEndpoint struct {
 	Path        string            `json:"path"`
 	Parameters  []APIParameter    `json:"parameters"`
 	Headers     map[string]string `json:"headers"`
+	APIName     string            `json:"apiName"`
+	BaseURL     string            `json:"baseUrl"`
 }
 
 type APIParameter struct {
@@ -62,7 +64,12 @@ func (c *RestClient) SetTimeout(timeout time.Duration) {
 }
 
 func (c *RestClient) MakeRequest(endpoint APIEndpoint, args map[string]interface{}) (*APIResponse, error) {
-	fullURL, err := c.buildURL(endpoint, args)
+	baseURL := c.baseURL
+	if endpoint.BaseURL != "" {
+		baseURL = endpoint.BaseURL
+	}
+
+	fullURL, err := c.buildURLWithBase(endpoint, args, baseURL)
 	if err != nil {
 		return nil, fmt.Errorf("error building URL: %w", err)
 	}
@@ -140,7 +147,7 @@ func (c *RestClient) MakeRequest(endpoint APIEndpoint, args map[string]interface
 	return apiResp, nil
 }
 
-func (c *RestClient) buildURL(endpoint APIEndpoint, args map[string]interface{}) (string, error) {
+func (c *RestClient) buildURLWithBase(endpoint APIEndpoint, args map[string]interface{}, baseURL string) (string, error) {
 	path := endpoint.Path
 	queryParams := url.Values{}
 
@@ -168,7 +175,7 @@ func (c *RestClient) buildURL(endpoint APIEndpoint, args map[string]interface{})
 		}
 	}
 
-	fullURL := c.baseURL + path
+	fullURL := strings.TrimSuffix(baseURL, "/") + path
 	if len(queryParams) > 0 {
 		fullURL += "?" + queryParams.Encode()
 	}

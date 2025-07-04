@@ -8,15 +8,16 @@ import (
 )
 
 type Config struct {
-	API      APIConfig               `json:"api"`
+	APIs     []APIConfig             `json:"apis"`
 	Server   ServerConfig            `json:"server"`
 	Headers  map[string]string       `json:"headers,omitempty"`
-	Endpoints []CustomEndpoint       `json:"endpoints,omitempty"`
 }
 
 type APIConfig struct {
-	BaseURL string `json:"baseUrl"`
-	Timeout int    `json:"timeout"`
+	Name      string            `json:"name"`
+	BaseURL   string            `json:"baseUrl"`
+	Timeout   int               `json:"timeout"`
+	Endpoints []CustomEndpoint  `json:"endpoints,omitempty"`
 }
 
 type ServerConfig struct {
@@ -96,9 +97,13 @@ func getDefaultConfigPath() string {
 
 func getDefaultConfig() *Config {
 	return &Config{
-		API: APIConfig{
-			BaseURL: "http://localhost:8080",
-			Timeout: 30,
+		APIs: []APIConfig{
+			{
+				Name:      "default-api",
+				BaseURL:   "http://localhost:8080",
+				Timeout:   30,
+				Endpoints: []CustomEndpoint{},
+			},
 		},
 		Server: ServerConfig{
 			Name:        "mcp-bridge",
@@ -108,17 +113,54 @@ func getDefaultConfig() *Config {
 		Headers: map[string]string{
 			"Content-Type": "application/json",
 		},
-		Endpoints: []CustomEndpoint{},
 	}
 }
 
 func (c *Config) Validate() error {
-	if c.API.BaseURL == "" {
-		return fmt.Errorf("API base URL is required")
+	if len(c.APIs) == 0 {
+		return fmt.Errorf("at least one API configuration is required")
 	}
 	
-	if c.API.Timeout <= 0 {
-		c.API.Timeout = 30
+	for i, api := range c.APIs {
+		if api.Name == "" {
+			return fmt.Errorf("API %d: name is required", i)
+		}
+		
+		if api.BaseURL == "" {
+			return fmt.Errorf("API %s: base URL is required", api.Name)
+		}
+		
+		if api.Timeout <= 0 {
+			c.APIs[i].Timeout = 30
+		}
+		
+		for j, endpoint := range api.Endpoints {
+			if endpoint.Name == "" {
+				return fmt.Errorf("API %s, endpoint %d: name is required", api.Name, j)
+			}
+			
+			if endpoint.Method == "" {
+				return fmt.Errorf("API %s, endpoint %s: method is required", api.Name, endpoint.Name)
+			}
+			
+			if endpoint.Path == "" {
+				return fmt.Errorf("API %s, endpoint %s: path is required", api.Name, endpoint.Name)
+			}
+			
+			for k, param := range endpoint.Parameters {
+				if param.Name == "" {
+					return fmt.Errorf("API %s, endpoint %s, parameter %d: name is required", api.Name, endpoint.Name, k)
+				}
+				
+				if param.In == "" {
+					api.Endpoints[j].Parameters[k].In = "query"
+				}
+				
+				if param.Type == "" {
+					api.Endpoints[j].Parameters[k].Type = "string"
+				}
+			}
+		}
 	}
 	
 	if c.Server.Name == "" {
@@ -127,34 +169,6 @@ func (c *Config) Validate() error {
 	
 	if c.Server.Version == "" {
 		c.Server.Version = "1.0.0"
-	}
-	
-	for i, endpoint := range c.Endpoints {
-		if endpoint.Name == "" {
-			return fmt.Errorf("endpoint %d: name is required", i)
-		}
-		
-		if endpoint.Method == "" {
-			return fmt.Errorf("endpoint %s: method is required", endpoint.Name)
-		}
-		
-		if endpoint.Path == "" {
-			return fmt.Errorf("endpoint %s: path is required", endpoint.Name)
-		}
-		
-		for j, param := range endpoint.Parameters {
-			if param.Name == "" {
-				return fmt.Errorf("endpoint %s, parameter %d: name is required", endpoint.Name, j)
-			}
-			
-			if param.In == "" {
-				param.In = "query"
-			}
-			
-			if param.Type == "" {
-				param.Type = "string"
-			}
-		}
 	}
 	
 	return nil
