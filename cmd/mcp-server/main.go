@@ -53,6 +53,7 @@ func main() {
 				Parameters:  make([]bridge.APIParameter, len(endpoint.Parameters)),
 				APIName:     api.Name,
 				BaseURL:     api.BaseURL,
+				Auth:        api.Auth,
 			}
 
 			for i, param := range endpoint.Parameters {

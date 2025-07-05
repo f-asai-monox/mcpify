@@ -1,0 +1,47 @@
+{
+  "server": {
+    "port": "8081",
+    "name": "Users Mock API Server"
+  },
+  "auth": {
+    "enabled": true,
+    "username": "admin",
+    "password": "password"
+  },
+  "resources": [
+    {
+      "name": "users",
+      "path": "/users",
+      "enabled": true,
+      "data": [
+        {
+          "id": 1,
+          "name": "John Doe",
+          "email": "john@example.com",
+          "created": "2024-01-15T10:00:00Z"
+        },
+        {
+          "id": 2,
+          "name": "Jane Smith",
+          "email": "jane@example.com",
+          "created": "2024-01-20T15:30:00Z"
+        }
+      ],
+      "methods": ["GET", "POST", "PUT", "DELETE"],
+      "supportsId": true
+    }
+  ],
+  "endpoints": [
+    {
+      "path": "/health",
+      "method": "GET",
+      "enabled": true,
+      "response": {
+        "status": "healthy",
+        "timestamp": "{{timestamp}}",
+        "version": "1.0.0",
+        "service": "users"
+      }
+    }
+  ]
+}

@@ -35,8 +35,7 @@ MCP Bridge is a proxy server that allows existing REST APIs to be used as Model 
 mcp-bridge/
 ├── cmd/
 │   ├── mcp-server/        # MCP server executable
-│   ├── mock-api/          # Users API mock server
-│   └── mock-products-api/ # Products API mock server
+│   └── mock-api/          # Configurable mock API server
 ├── internal/
 │   ├── mcp/              # MCP implementation
 │   ├── bridge/           # REST API conversion logic
@@ -60,42 +59,28 @@ mcp-bridge/
 # Build MCP server
 go build -o bin/mcp-server ./cmd/mcp-server
 
-# Build Mock API servers
+# Build Mock API server
 go build -o bin/mock-api ./cmd/mock-api
-go build -o bin/mock-products-api ./cmd/mock-products-api
 ```
 
 ## Usage
 
-### 1. Start Mock API Servers
+### 1. Start Mock API Server
 
-Start the test REST API servers:
+Start the configurable mock REST API server:
 
 ```bash
-# Start Users API server (port 8081)
-PORT=8081 ./bin/mock-api
+# Start with default configuration (users API)
+./bin/mock-api
 
-# Start Products API server (port 8082)
-./bin/mock-products-api
+# Start with products configuration
+MOCK_CONFIG=configs/mock/products.json ./bin/mock-api
 
 # Or run directly
-PORT=8081 go run ./cmd/mock-api &
-go run ./cmd/mock-products-api &
+go run ./cmd/mock-api
 ```
 
-The Users API server starts at `http://localhost:8081` with the following endpoints:
-
-- `GET /health` - Health check
-- `GET /users` - Get all users
-- `POST /users` - Create user
-- `GET /users/{id}` - Get specific user
-- `PUT /users/{id}` - Update user
-- `DELETE /users/{id}` - Delete user
-
-The Products API server starts at `http://localhost:8082` with the following endpoints:
-
-- `GET /products` - Get all products
-- `GET /products/{id}` - Get specific product
+For detailed Mock API documentation, configuration options, and usage examples, see **[Mock API Documentation](docs/MOCK-API.md)**.
 
 ### 2. Start MCP Server
 
@@ -166,7 +151,7 @@ Example configuration file (`config.json`):
     },
     {
       "name": "products-api",
-      "baseUrl": "http://localhost:8082",
+      "baseUrl": "http://localhost:8080",
       "timeout": 30,
       "endpoints": [
         {

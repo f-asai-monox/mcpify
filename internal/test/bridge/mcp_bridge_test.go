@@ -26,11 +26,6 @@ func TestMCPBridge_AddCustomEndpoint(t *testing.T) {
 	mcpBridge.AddCustomEndpoint(endpoint)
 }
 
-func TestMCPBridge_SetAPIBaseURL(t *testing.T) {
-	mcpBridge := bridge.NewMCPBridge()
-	mcpBridge.SetAPIBaseURL("http://localhost:9000")
-}
-
 func TestMCPBridge_SetAPIHeader(t *testing.T) {
 	mcpBridge := bridge.NewMCPBridge()
 	mcpBridge.SetAPIHeader("Authorization", "Bearer token123")
@@ -38,7 +33,7 @@ func TestMCPBridge_SetAPIHeader(t *testing.T) {
 
 func TestMCPBridge_FullWorkflow(t *testing.T) {
 	mcpBridge := bridge.NewMCPBridge()
-	
+
 	endpoint := bridge.APIEndpoint{
 		Name:        "test-workflow",
 		Description: "Test workflow endpoint",
@@ -55,6 +50,6 @@ func TestMCPBridge_FullWorkflow(t *testing.T) {
 			},
 		},
 	}
-	
+
 	mcpBridge.AddCustomEndpoint(endpoint)
 }

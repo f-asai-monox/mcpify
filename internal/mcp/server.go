@@ -128,7 +128,7 @@ func (s *Server) handleInitialize(msg *types.JSONRPCMessage) error {
 	return s.sendResult(msg.ID, result)
 }
 
-func (s *Server) handleInitialized(msg *types.JSONRPCMessage) error {
+func (s *Server) handleInitialized(_ *types.JSONRPCMessage) error {
 	s.initialized = true
 	return nil
 }

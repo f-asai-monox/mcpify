@@ -35,8 +35,7 @@ MCP Bridge は、既存の REST API を Model Context Protocol (MCP) サーバ�
 mcp-bridge/
 ├── cmd/
 │   ├── mcp-server/        # MCPサーバー実行ファイル
-│   ├── mock-api/          # Users API mockサーバー
-│   └── mock-products-api/ # Products API mockサーバー
+│   └── mock-api/          # 設定可能なMock APIサーバー
 ├── internal/
 │   ├── mcp/              # MCP実装
 │   ├── bridge/           # REST API変換ロジック
@@ -62,40 +61,26 @@ go build -o bin/mcp-server ./cmd/mcp-server
 
 # Mock APIサーバーのビルド
 go build -o bin/mock-api ./cmd/mock-api
-go build -o bin/mock-products-api ./cmd/mock-products-api
 ```
 
 ## 使用方法
 
 ### 1. Mock APIサーバーの起動
 
-テスト用のREST APIサーバーを起動します：
+設定可能なMock REST APIサーバーを起動します：
 
 ```bash
-# Users APIサーバーの起動（ポート 8081）
-PORT=8081 ./bin/mock-api
+# デフォルト設定で起動（ユーザーAPI）
+./bin/mock-api
 
-# Products APIサーバーの起動（ポート 8082）
-./bin/mock-products-api
+# 商品設定で起動
+MOCK_CONFIG=configs/mock/products.json ./bin/mock-api
 
 # または直接実行
-PORT=8081 go run ./cmd/mock-api &
-go run ./cmd/mock-products-api &
+go run ./cmd/mock-api
 ```
 
-Users APIサーバーは `http://localhost:8081` で起動し、以下のエンドポイントが利用できます：
-
-- `GET /health` - ヘルスチェック
-- `GET /users` - 全ユーザー取得
-- `POST /users` - ユーザー作成
-- `GET /users/{id}` - 特定ユーザー取得
-- `PUT /users/{id}` - ユーザー更新
-- `DELETE /users/{id}` - ユーザー削除
-
-Products APIサーバーは `http://localhost:8082` で起動し、以下のエンドポイントが利用できます：
-
-- `GET /products` - 全商品取得
-- `GET /products/{id}` - 特定商品取得
+Mock APIの詳細なドキュメント、設定オプション、使用例については、**[Mock APIドキュメント](docs/MOCK-API.ja.md)** をご覧ください。
 
 ### 2. MCPサーバーの起動
 
@@ -166,7 +151,7 @@ MCPブリッジサーバーを起動します：
     },
     {
       "name": "products-api",
-      "baseUrl": "http://localhost:8082",
+      "baseUrl": "http://localhost:8080",
       "timeout": 30,
       "endpoints": [
         {

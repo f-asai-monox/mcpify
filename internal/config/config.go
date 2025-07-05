@@ -17,7 +17,18 @@ type APIConfig struct {
 	Name      string           `json:"name"`
 	BaseURL   string           `json:"baseUrl"`
 	Timeout   int              `json:"timeout"`
+	Auth      *AuthConfig      `json:"auth,omitempty"`
 	Endpoints []CustomEndpoint `json:"endpoints,omitempty"`
+}
+
+type AuthConfig struct {
+	Type  string           `json:"type"`
+	Basic *BasicAuthConfig `json:"basic,omitempty"`
+}
+
+type BasicAuthConfig struct {
+	Username string `json:"username"`
+	Password string `json:"password"`
 }
 
 type ServerConfig struct {
@@ -132,6 +143,28 @@ func (c *Config) Validate() error {
 
 		if api.Timeout <= 0 {
 			c.APIs[i].Timeout = 30
+		}
+
+		// Validate authentication configuration
+		if api.Auth != nil {
+			if api.Auth.Type == "" {
+				return fmt.Errorf("API %s: auth type is required when auth is configured", api.Name)
+			}
+
+			switch api.Auth.Type {
+			case "basic":
+				if api.Auth.Basic == nil {
+					return fmt.Errorf("API %s: basic auth configuration is required when type is 'basic'", api.Name)
+				}
+				if api.Auth.Basic.Username == "" {
+					return fmt.Errorf("API %s: basic auth username is required", api.Name)
+				}
+				if api.Auth.Basic.Password == "" {
+					return fmt.Errorf("API %s: basic auth password is required", api.Name)
+				}
+			default:
+				return fmt.Errorf("API %s: unsupported auth type '%s'", api.Name, api.Auth.Type)
+			}
 		}
 
 		for j, endpoint := range api.Endpoints {

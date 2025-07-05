@@ -4,6 +4,13 @@
       "name": "users-api",
       "baseUrl": "http://localhost:8081",
       "timeout": 30,
+      "auth": {
+        "type": "basic",
+        "basic": {
+          "username": "admin",
+          "password": "password"
+        }
+      },
       "endpoints": [
         {
           "name": "health",
@@ -24,7 +31,22 @@
           "description": "Create a new user",
           "method": "POST",
           "path": "/users",
-          "parameters": []
+          "parameters": [
+            {
+              "name": "email",
+              "type": "string",
+              "required": true,
+              "description": "User email address",
+              "in": "body"
+            },
+            {
+              "name": "name",
+              "type": "string",
+              "required": true,
+              "description": "User name",
+              "in": "body"
+            }
+          ]
         },
         {
           "name": "get_user",
@@ -53,6 +75,20 @@
               "required": true,
               "description": "User ID",
               "in": "path"
+            },
+            {
+              "name": "email",
+              "type": "string",
+              "required": true,
+              "description": "User email address",
+              "in": "body"
+            },
+            {
+              "name": "name",
+              "type": "string",
+              "required": true,
+              "description": "User name",
+              "in": "body"
             }
           ]
         },

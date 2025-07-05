@@ -2,6 +2,7 @@ package bridge
 
 import (
 	"bytes"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -9,6 +10,8 @@ import (
 	"net/url"
 	"strings"
 	"time"
+
+	"mcp-bridge/internal/config"
 )
 
 type RestClient struct {
@@ -17,14 +20,15 @@ type RestClient struct {
 }
 
 type APIEndpoint struct {
-	Name        string            `json:"name"`
-	Description string            `json:"description"`
-	Method      string            `json:"method"`
-	Path        string            `json:"path"`
-	Parameters  []APIParameter    `json:"parameters"`
-	Headers     map[string]string `json:"headers"`
-	APIName     string            `json:"apiName"`
-	BaseURL     string            `json:"baseUrl"`
+	Name        string             `json:"name"`
+	Description string             `json:"description"`
+	Method      string             `json:"method"`
+	Path        string             `json:"path"`
+	Parameters  []APIParameter     `json:"parameters"`
+	Headers     map[string]string  `json:"headers"`
+	APIName     string             `json:"apiName"`
+	BaseURL     string             `json:"baseUrl"`
+	Auth        *config.AuthConfig `json:"auth,omitempty"`
 }
 
 type APIParameter struct {
@@ -102,6 +106,14 @@ func (c *RestClient) MakeRequest(endpoint APIEndpoint, args map[string]interface
 			if value, exists := args[param.Name]; exists {
 				req.Header.Set(param.Name, fmt.Sprintf("%v", value))
 			}
+		}
+	}
+
+	// Apply authentication
+	if endpoint.Auth != nil {
+		err := c.applyAuthentication(req, endpoint.Auth)
+		if err != nil {
+			return nil, fmt.Errorf("error applying authentication: %w", err)
 		}
 	}
 
@@ -211,4 +223,22 @@ func (c *RestClient) extractBodyData(endpoint APIEndpoint, args map[string]inter
 	}
 
 	return bodyData
+}
+
+func (c *RestClient) applyAuthentication(req *http.Request, auth *config.AuthConfig) error {
+	switch auth.Type {
+	case "basic":
+		if auth.Basic == nil {
+			return fmt.Errorf("basic auth configuration is nil")
+		}
+		
+		credentials := auth.Basic.Username + ":" + auth.Basic.Password
+		encoded := base64.StdEncoding.EncodeToString([]byte(credentials))
+		req.Header.Set("Authorization", "Basic "+encoded)
+		
+	default:
+		return fmt.Errorf("unsupported authentication type: %s", auth.Type)
+	}
+	
+	return nil
 }

@@ -1,0 +1,54 @@
+{
+  "server": {
+    "port": "8082",
+    "name": "Products Mock API Server"
+  },
+  "resources": [
+    {
+      "name": "products",
+      "path": "/products",
+      "enabled": true,
+      "data": [
+        {
+          "id": 1,
+          "name": "Laptop",
+          "description": "High-performance laptop",
+          "price": 999.99,
+          "category": "Electronics",
+          "created": "2024-01-15T10:00:00Z"
+        },
+        {
+          "id": 2,
+          "name": "Smartphone",
+          "description": "Latest smartphone",
+          "price": 699.99,
+          "category": "Electronics",
+          "created": "2024-01-20T15:30:00Z"
+        },
+        {
+          "id": 3,
+          "name": "Coffee Mug",
+          "description": "Ceramic coffee mug",
+          "price": 12.99,
+          "category": "Home",
+          "created": "2024-01-25T09:15:00Z"
+        }
+      ],
+      "methods": ["GET", "POST", "PUT", "DELETE"],
+      "supportsId": true
+    }
+  ],
+  "endpoints": [
+    {
+      "path": "/health",
+      "method": "GET",
+      "enabled": true,
+      "response": {
+        "status": "healthy",
+        "timestamp": "{{timestamp}}",
+        "version": "1.0.0",
+        "service": "products"
+      }
+    }
+  ]
+}

@@ -264,11 +264,6 @@ func (b *MCPBridge) Start() error {
 	return b.server.Start()
 }
 
-func (b *MCPBridge) SetAPIBaseURL(baseURL string) {
-	b.restClient = NewRestClient()
-	b.restClient.SetHeader("Content-Type", "application/json")
-}
-
 func (b *MCPBridge) SetAPIHeader(key, value string) {
 	b.restClient.SetHeader(key, value)
 }
