@@ -181,3 +181,60 @@ func TestConfig_Validate_NoAuth(t *testing.T) {
 	err := cfg.Validate()
 	assert.NoError(t, err)
 }
+
+func TestConfig_Validate_WithHeaders(t *testing.T) {
+	cfg := &config.Config{
+		APIs: []config.APIConfig{
+			{
+				Name:    "test-api",
+				BaseURL: "http://localhost:8080",
+				Timeout: 30,
+				Headers: map[string]string{
+					"X-API-Key":      "test-key",
+					"Authorization":  "Bearer token",
+					"X-Custom":       "custom-value",
+				},
+			},
+		},
+		Server: config.ServerConfig{
+			Name:    "test-server",
+			Version: "1.0.0",
+		},
+	}
+
+	err := cfg.Validate()
+	assert.NoError(t, err)
+	assert.Equal(t, "test-key", cfg.APIs[0].Headers["X-API-Key"])
+	assert.Equal(t, "Bearer token", cfg.APIs[0].Headers["Authorization"])
+	assert.Equal(t, "custom-value", cfg.APIs[0].Headers["X-Custom"])
+}
+
+func TestConfig_Validate_HeadersWithAuth(t *testing.T) {
+	cfg := &config.Config{
+		APIs: []config.APIConfig{
+			{
+				Name:    "test-api",
+				BaseURL: "http://localhost:8080",
+				Timeout: 30,
+				Headers: map[string]string{
+					"X-API-Key": "test-key",
+				},
+				Auth: &config.AuthConfig{
+					Type: "basic",
+					Basic: &config.BasicAuthConfig{
+						Username: "testuser",
+						Password: "testpass",
+					},
+				},
+			},
+		},
+		Server: config.ServerConfig{
+			Name:    "test-server",
+			Version: "1.0.0",
+		},
+	}
+
+	err := cfg.Validate()
+	assert.NoError(t, err)
+	assert.Equal(t, "test-key", cfg.APIs[0].Headers["X-API-Key"])
+}

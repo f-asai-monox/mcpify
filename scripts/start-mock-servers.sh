@@ -44,9 +44,12 @@ start_mock_server() {
     
     echo -e "${YELLOW}Starting $server_name on port $port...${NC}"
     
-    # Start the server in the background
+    # Create log file for this server
+    local log_file="/tmp/mock-server-$port.log"
+    
+    # Start the server in the background with logging
     cd "$PROJECT_DIR"
-    MOCK_CONFIG="$config_file" ./bin/mock-api &
+    MOCK_CONFIG="$config_file" ./bin/mock-api > "$log_file" 2>&1 &
     local pid=$!
     
     # Wait a moment for the server to start
@@ -55,10 +58,12 @@ start_mock_server() {
     # Check if the server is running
     if curl -s "http://localhost:$port/health" > /dev/null 2>&1; then
         echo -e "${GREEN}✓ $server_name started successfully (PID: $pid)${NC}"
-        echo "$pid" >> /tmp/mock-servers.pid
+        echo -e "${BLUE}  Log file: $log_file${NC}"
+        echo "$pid:$log_file" >> /tmp/mock-servers.pid
         return 0
     else
         echo -e "${RED}✗ Failed to start $server_name${NC}"
+        echo -e "${RED}  Check log file: $log_file${NC}"
         return 1
     fi
 }
@@ -68,10 +73,16 @@ cleanup() {
     echo
     echo -e "${YELLOW}Stopping mock servers...${NC}"
     if [ -f /tmp/mock-servers.pid ]; then
-        while read -r pid; do
+        while read -r line; do
+            local pid=$(echo "$line" | cut -d':' -f1)
+            local log_file=$(echo "$line" | cut -d':' -f2)
             if kill -0 "$pid" 2>/dev/null; then
                 kill "$pid" 2>/dev/null
                 echo -e "${GREEN}✓ Stopped server (PID: $pid)${NC}"
+            fi
+            # Clean up log file
+            if [ -f "$log_file" ]; then
+                rm -f "$log_file"
             fi
         done < /tmp/mock-servers.pid
         rm -f /tmp/mock-servers.pid
@@ -137,8 +148,31 @@ echo "  - Users API on http://localhost:8081 (with basic auth)"
 echo "  - Products API on http://localhost:8082 (no auth in example config)"
 echo
 
-echo -e "${BLUE}Press Ctrl+C to stop all servers${NC}"
+echo -e "${BLUE}=== Monitoring Server Logs ===${NC}"
+echo -e "${YELLOW}Press Ctrl+C to stop all servers${NC}"
+echo -e "${YELLOW}Log files:${NC}"
+echo "  Users API (8081): /tmp/mock-server-8081.log"
+echo "  Products API (8082): /tmp/mock-server-8082.log"
 echo
+echo -e "${BLUE}To view logs in real-time:${NC}"
+echo -e "${GREEN}  tail -f /tmp/mock-server-8081.log${NC}"
+echo -e "${GREEN}  tail -f /tmp/mock-server-8082.log${NC}"
+echo
+echo -e "${BLUE}=== Live Log Output ===${NC}"
+echo
+
+# Function to display logs with prefixes
+show_logs() {
+    if [ -f /tmp/mock-server-8081.log ]; then
+        tail -f /tmp/mock-server-8081.log 2>/dev/null | sed 's/^/[Users-8081] /' &
+    fi
+    if [ -f /tmp/mock-server-8082.log ]; then
+        tail -f /tmp/mock-server-8082.log 2>/dev/null | sed 's/^/[Products-8082] /' &
+    fi
+}
+
+# Start showing logs
+show_logs
 
 # Wait for interrupt signal
 while true; do

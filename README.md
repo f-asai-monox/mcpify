@@ -108,8 +108,19 @@ Example configuration file (`config.json`):
   "apis": [
     {
       "name": "users-api",
-      "baseUrl": "http://localhost:8080",
+      "baseUrl": "http://localhost:8081",
       "timeout": 30,
+      "headers": {
+        "X-API-Key": "your-api-key-here",
+        "X-Custom-Header": "custom-value"
+      },
+      "auth": {
+        "type": "basic",
+        "basic": {
+          "username": "admin",
+          "password": "password"
+        }
+      },
       "endpoints": [
         {
           "name": "health",
@@ -130,7 +141,22 @@ Example configuration file (`config.json`):
           "description": "Create a new user",
           "method": "POST",
           "path": "/users",
-          "parameters": []
+          "parameters": [
+            {
+              "name": "email",
+              "type": "string",
+              "required": true,
+              "description": "User email address",
+              "in": "body"
+            },
+            {
+              "name": "name",
+              "type": "string",
+              "required": true,
+              "description": "User name",
+              "in": "body"
+            }
+          ]
         },
         {
           "name": "get_user",
@@ -146,13 +172,60 @@ Example configuration file (`config.json`):
               "in": "path"
             }
           ]
+        },
+        {
+          "name": "update_user",
+          "description": "Update a specific user by ID",
+          "method": "PUT",
+          "path": "/users/{id}",
+          "parameters": [
+            {
+              "name": "id",
+              "type": "integer",
+              "required": true,
+              "description": "User ID",
+              "in": "path"
+            },
+            {
+              "name": "email",
+              "type": "string",
+              "required": true,
+              "description": "User email address",
+              "in": "body"
+            },
+            {
+              "name": "name",
+              "type": "string",
+              "required": true,
+              "description": "User name",
+              "in": "body"
+            }
+          ]
+        },
+        {
+          "name": "delete_user",
+          "description": "Delete a specific user by ID",
+          "method": "DELETE",
+          "path": "/users/{id}",
+          "parameters": [
+            {
+              "name": "id",
+              "type": "integer",
+              "required": true,
+              "description": "User ID",
+              "in": "path"
+            }
+          ]
         }
       ]
     },
     {
       "name": "products-api",
-      "baseUrl": "http://localhost:8080",
+      "baseUrl": "http://localhost:8082",
       "timeout": 30,
+      "headers": {
+        "Authorization": "Bearer your-token-here"
+      },
       "endpoints": [
         {
           "name": "get_products",
@@ -197,9 +270,9 @@ Configuration example for Claude Code:
 ```json
 {
   "mcpServers": {
-    "rest-api-bridge": {
-      "command": "/path/to/mcp-server",
-      "args": ["-api-url", "http://localhost:8080"]
+    "mcp-bridge": {
+      "command": "go",
+      "args": ["run", "./cmd/mcp-server", "--config", "./example-config.json"]
     }
   }
 }

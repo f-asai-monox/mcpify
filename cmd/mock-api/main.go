@@ -113,11 +113,24 @@ func basicAuthMiddleware(next http.HandlerFunc) http.HandlerFunc {
 	}
 }
 
+func logHeadersMiddleware(next http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		log.Printf("[%s] %s %s", r.Method, r.URL.Path, r.RemoteAddr)
+		log.Printf("Request Headers:")
+		for name, values := range r.Header {
+			for _, value := range values {
+				log.Printf("  %s: %s", name, value)
+			}
+		}
+		next(w, r)
+	}
+}
+
 func corsHandler(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Access-Control-Allow-Origin", "*")
 		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
-		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization, X-API-Key")
 
 		if r.Method == "OPTIONS" {
 			w.WriteHeader(http.StatusOK)
@@ -317,16 +330,16 @@ func main() {
 	}
 	
 	for path, endpoints := range endpointsByPath {
-		http.HandleFunc(path, corsHandler(basicAuthMiddleware(createMultiMethodEndpointHandler(endpoints))))
+		http.HandleFunc(path, logHeadersMiddleware(corsHandler(basicAuthMiddleware(createMultiMethodEndpointHandler(endpoints)))))
 	}
 
 	// Register resource handlers
 	for i := range config.Resources {
 		resource := &config.Resources[i]
 		if resource.Enabled {
-			http.HandleFunc(resource.Path, corsHandler(basicAuthMiddleware(createResourceHandler(resource))))
+			http.HandleFunc(resource.Path, logHeadersMiddleware(corsHandler(basicAuthMiddleware(createResourceHandler(resource)))))
 			if resource.SupportsID {
-				http.HandleFunc(resource.Path+"/", corsHandler(basicAuthMiddleware(createResourceIDHandler(resource))))
+				http.HandleFunc(resource.Path+"/", logHeadersMiddleware(corsHandler(basicAuthMiddleware(createResourceIDHandler(resource)))))
 			}
 		}
 	}

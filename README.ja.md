@@ -108,8 +108,18 @@ MCPブリッジサーバーを起動します：
   "apis": [
     {
       "name": "users-api",
-      "baseUrl": "http://localhost:8080",
+      "baseUrl": "http://localhost:8081",
       "timeout": 30,
+      "headers": {
+        "X-API-Key": "your-api-key-here"
+      },
+      "auth": {
+        "type": "basic",
+        "basic": {
+          "username": "admin",
+          "password": "password"
+        }
+      },
       "endpoints": [
         {
           "name": "health",
@@ -130,7 +140,22 @@ MCPブリッジサーバーを起動します：
           "description": "新しいユーザー作成",
           "method": "POST",
           "path": "/users",
-          "parameters": []
+          "parameters": [
+            {
+              "name": "email",
+              "type": "string",
+              "required": true,
+              "description": "ユーザーメールアドレス",
+              "in": "body"
+            },
+            {
+              "name": "name",
+              "type": "string",
+              "required": true,
+              "description": "ユーザー名",
+              "in": "body"
+            }
+          ]
         },
         {
           "name": "get_user",
@@ -146,13 +171,60 @@ MCPブリッジサーバーを起動します：
               "in": "path"
             }
           ]
+        },
+        {
+          "name": "update_user",
+          "description": "特定ユーザーをIDで更新",
+          "method": "PUT",
+          "path": "/users/{id}",
+          "parameters": [
+            {
+              "name": "id",
+              "type": "integer",
+              "required": true,
+              "description": "ユーザーID",
+              "in": "path"
+            },
+            {
+              "name": "email",
+              "type": "string",
+              "required": true,
+              "description": "ユーザーメールアドレス",
+              "in": "body"
+            },
+            {
+              "name": "name",
+              "type": "string",
+              "required": true,
+              "description": "ユーザー名",
+              "in": "body"
+            }
+          ]
+        },
+        {
+          "name": "delete_user",
+          "description": "特定ユーザーをIDで削除",
+          "method": "DELETE",
+          "path": "/users/{id}",
+          "parameters": [
+            {
+              "name": "id",
+              "type": "integer",
+              "required": true,
+              "description": "ユーザーID",
+              "in": "path"
+            }
+          ]
         }
       ]
     },
     {
       "name": "products-api",
-      "baseUrl": "http://localhost:8080",
+      "baseUrl": "http://localhost:8082",
       "timeout": 30,
+      "headers": {
+        "Authorization": "Bearer your-token-here"
+      },
       "endpoints": [
         {
           "name": "get_products",
@@ -197,9 +269,9 @@ Claude Codeで使用する場合の設定例：
 ```json
 {
   "mcpServers": {
-    "rest-api-bridge": {
-      "command": "/path/to/mcp-server",
-      "args": ["-api-url", "http://localhost:8080"]
+    "mcp-bridge": {
+      "command": "go",
+      "args": ["run", "./cmd/mcp-server", "--config", "./example-config.json"]
     }
   }
 }

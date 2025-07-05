@@ -44,12 +44,23 @@ func main() {
 
 	for _, api := range cfg.APIs {
 		for _, endpoint := range api.Endpoints {
+			// Merge API-level headers with endpoint-level headers
+			mergedHeaders := make(map[string]string)
+			// Add API-level headers first
+			for key, value := range api.Headers {
+				mergedHeaders[key] = value
+			}
+			// Override with endpoint-level headers
+			for key, value := range endpoint.Headers {
+				mergedHeaders[key] = value
+			}
+			
 			apiEndpoint := bridge.APIEndpoint{
 				Name:        api.Name + "__" + endpoint.Name,
 				Description: endpoint.Description,
 				Method:      endpoint.Method,
 				Path:        endpoint.Path,
-				Headers:     endpoint.Headers,
+				Headers:     mergedHeaders,
 				Parameters:  make([]bridge.APIParameter, len(endpoint.Parameters)),
 				APIName:     api.Name,
 				BaseURL:     api.BaseURL,

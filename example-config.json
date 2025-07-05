@@ -4,6 +4,9 @@
       "name": "users-api",
       "baseUrl": "http://localhost:8081",
       "timeout": 30,
+      "headers": {
+        "X-API-Key": "your-api-key-here"
+      },
       "auth": {
         "type": "basic",
         "basic": {
@@ -113,6 +116,9 @@
       "name": "products-api",
       "baseUrl": "http://localhost:8082",
       "timeout": 30,
+      "headers": {
+        "Authorization": "Bearer your-token-here"
+      },
       "endpoints": [
         {
           "name": "get_products",

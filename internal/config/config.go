@@ -17,6 +17,7 @@ type APIConfig struct {
 	Name      string           `json:"name"`
 	BaseURL   string           `json:"baseUrl"`
 	Timeout   int              `json:"timeout"`
+	Headers   map[string]string `json:"headers,omitempty"`
 	Auth      *AuthConfig      `json:"auth,omitempty"`
 	Endpoints []CustomEndpoint `json:"endpoints,omitempty"`
 }

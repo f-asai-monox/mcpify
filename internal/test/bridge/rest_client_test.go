@@ -334,3 +334,66 @@ func TestRestClient_MakeRequest_MissingBaseURL(t *testing.T) {
 	assert.Nil(t, resp)
 	assert.Contains(t, err.Error(), "endpoint BaseURL is required")
 }
+
+func TestRestClient_MakeRequest_WithAPIHeaders(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		assert.Equal(t, "test-api-key", r.Header.Get("X-API-Key"))
+		assert.Equal(t, "Bearer test-token", r.Header.Get("Authorization"))
+		assert.Equal(t, "custom-value", r.Header.Get("X-Custom-Header"))
+		
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"message": "success",
+		})
+	}))
+	defer server.Close()
+
+	client := bridge.NewRestClient()
+	endpoint := bridge.APIEndpoint{
+		Name:        "api-with-headers",
+		Description: "API with custom headers",
+		Method:      "GET",
+		Path:        "/test",
+		BaseURL:     server.URL,
+		Headers: map[string]string{
+			"X-API-Key":      "test-api-key",
+			"Authorization":  "Bearer test-token",
+			"X-Custom-Header": "custom-value",
+		},
+	}
+
+	resp, err := client.MakeRequest(endpoint, map[string]interface{}{})
+	require.NoError(t, err)
+	assert.Equal(t, http.StatusOK, resp.StatusCode)
+}
+
+func TestRestClient_MakeRequest_HeaderPrecedence(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Endpoint-level header should override API-level header
+		assert.Equal(t, "endpoint-value", r.Header.Get("X-Override"))
+		assert.Equal(t, "api-value", r.Header.Get("X-API-Only"))
+		
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"message": "success",
+		})
+	}))
+	defer server.Close()
+
+	client := bridge.NewRestClient()
+	endpoint := bridge.APIEndpoint{
+		Name:        "header-precedence-test",
+		Description: "Test header precedence",
+		Method:      "GET",
+		Path:        "/test",
+		BaseURL:     server.URL,
+		Headers: map[string]string{
+			"X-Override":  "endpoint-value", // This should override API-level
+			"X-API-Only":  "api-value",     // This should remain
+		},
+	}
+
+	resp, err := client.MakeRequest(endpoint, map[string]interface{}{})
+	require.NoError(t, err)
+	assert.Equal(t, http.StatusOK, resp.StatusCode)
+}
