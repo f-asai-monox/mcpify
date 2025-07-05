@@ -1,4 +1,4 @@
-# MCP Bridge
+# mcpify
 
 A proxy server that enables REST APIs to be used as MCP (Model Context Protocol) servers.
 
