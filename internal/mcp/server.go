@@ -1,14 +1,12 @@
 package mcp
 
 import (
-	"bufio"
 	"encoding/json"
 	"fmt"
 	"io"
 	"log"
-	"os"
-	"strings"
 
+	"mcp-bridge/internal/transport"
 	"mcp-bridge/pkg/types"
 )
 
@@ -17,15 +15,14 @@ type Server struct {
 	tools           []types.Tool
 	resources       []types.Resource
 	prompts         []types.Prompt
-	reader          *bufio.Scanner
-	writer          io.Writer
+	transport       transport.Transport
 	initialized     bool
 	toolHandler     func(string, map[string]interface{}) (*types.CallToolResult, error)
 	resourceHandler func(string) (*types.ReadResourceResult, error)
 	promptHandler   func(string, map[string]interface{}) (*types.GetPromptResult, error)
 }
 
-func NewServer() *Server {
+func NewServer(t transport.Transport) *Server {
 	return &Server{
 		capabilities: types.ServerCapabilities{
 			Tools: &types.ToolsCapability{
@@ -40,31 +37,32 @@ func NewServer() *Server {
 		tools:     []types.Tool{},
 		resources: []types.Resource{},
 		prompts:   []types.Prompt{},
-		reader:    bufio.NewScanner(os.Stdin),
-		writer:    os.Stdout,
+		transport: t,
 	}
 }
 
 func (s *Server) Start() error {
-	for s.reader.Scan() {
-		line := strings.TrimSpace(s.reader.Text())
-		if line == "" {
-			continue
-		}
+	if err := s.transport.Start(); err != nil {
+		return fmt.Errorf("error starting transport: %w", err)
+	}
 
-		var msg types.JSONRPCMessage
-		if err := json.Unmarshal([]byte(line), &msg); err != nil {
+	for {
+		msg, err := s.transport.ReadMessage()
+		if err != nil {
+			if err == io.EOF {
+				break
+			}
 			s.sendError(nil, -32700, "Parse error", err)
 			continue
 		}
 
-		if err := s.handleMessage(&msg); err != nil {
+		if msg == nil {
+			continue // No message available (for HTTP transport polling)
+		}
+
+		if err := s.handleMessage(msg); err != nil {
 			log.Printf("Error handling message: %v", err)
 		}
-	}
-
-	if err := s.reader.Err(); err != nil {
-		return fmt.Errorf("error reading from stdin: %w", err)
 	}
 
 	return nil
@@ -281,13 +279,7 @@ func (s *Server) sendError(id interface{}, code int, message string, data interf
 }
 
 func (s *Server) sendMessage(msg types.JSONRPCMessage) error {
-	data, err := json.Marshal(msg)
-	if err != nil {
-		return fmt.Errorf("error marshaling message: %w", err)
-	}
-
-	_, err = fmt.Fprintf(s.writer, "%s\n", string(data))
-	return err
+	return s.transport.WriteMessage(&msg)
 }
 
 func (s *Server) AddTool(tool types.Tool) {

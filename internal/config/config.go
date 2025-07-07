@@ -8,9 +8,10 @@ import (
 )
 
 type Config struct {
-	APIs    []APIConfig       `json:"apis"`
-	Server  ServerConfig      `json:"server"`
-	Headers map[string]string `json:"headers,omitempty"`
+	APIs      []APIConfig       `json:"apis"`
+	Server    ServerConfig      `json:"server"`
+	Headers   map[string]string `json:"headers,omitempty"`
+	Transport TransportConfig   `json:"transport,omitempty"`
 }
 
 type APIConfig struct {
@@ -36,6 +37,17 @@ type ServerConfig struct {
 	Name        string `json:"name"`
 	Version     string `json:"version"`
 	Description string `json:"description"`
+}
+
+type TransportConfig struct {
+	Type string               `json:"type"`
+	HTTP *HTTPTransportConfig `json:"http,omitempty"`
+}
+
+type HTTPTransportConfig struct {
+	Host string `json:"host"`
+	Port int    `json:"port"`
+	CORS bool   `json:"cors"`
 }
 
 type CustomEndpoint struct {
@@ -125,6 +137,9 @@ func getDefaultConfig() *Config {
 		Headers: map[string]string{
 			"Content-Type": "application/json",
 		},
+		Transport: TransportConfig{
+			Type: "stdio",
+		},
 	}
 }
 
@@ -205,5 +220,7 @@ func (c *Config) Validate() error {
 		c.Server.Version = "1.0.0"
 	}
 
+	// Transport configuration is optional in config file
+	// Transport type is determined by which main.go is used
 	return nil
 }

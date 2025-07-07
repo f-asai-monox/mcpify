@@ -7,6 +7,7 @@ import (
 
 	"mcp-bridge/internal/bridge"
 	"mcp-bridge/internal/config"
+	"mcp-bridge/internal/transport"
 )
 
 func main() {
@@ -32,11 +33,15 @@ func main() {
 		cfg.APIs[0].BaseURL = *apiURL
 	}
 
+	// Stdio server always uses stdio transport, ignoring config file transport settings
+
 	if err := cfg.Validate(); err != nil {
 		log.Fatalf("Invalid configuration: %v", err)
 	}
 
-	mcpBridge := bridge.NewMCPBridge()
+	// Create stdio transport
+	mcpTransport := transport.NewStdioTransport()
+	mcpBridge := bridge.NewMCPBridge(mcpTransport)
 
 	for key, value := range cfg.Headers {
 		mcpBridge.SetAPIHeader(key, value)
@@ -54,7 +59,7 @@ func main() {
 			for key, value := range endpoint.Headers {
 				mergedHeaders[key] = value
 			}
-			
+
 			apiEndpoint := bridge.APIEndpoint{
 				Name:        api.Name + "__" + endpoint.Name,
 				Description: endpoint.Description,

@@ -329,3 +329,51 @@ func TestValidate_ServerDefaults(t *testing.T) {
 	assert.Equal(t, "mcp-bridge", cfg.Server.Name)
 	assert.Equal(t, "1.0.0", cfg.Server.Version)
 }
+
+func TestValidate_WithTransportConfig(t *testing.T) {
+	cfg := &config.Config{
+		APIs: []config.APIConfig{
+			{
+				Name:    "test-api",
+				BaseURL: "http://localhost:8080",
+				Timeout: 30,
+			},
+		},
+		Server: config.ServerConfig{
+			Name:    "test-server",
+			Version: "1.0.0",
+		},
+		Transport: config.TransportConfig{
+			Type: "http",
+			HTTP: &config.HTTPTransportConfig{
+				Host: "localhost",
+				Port: 8080,
+				CORS: true,
+			},
+		},
+	}
+
+	// Transport config is ignored during validation
+	err := cfg.Validate()
+	assert.NoError(t, err)
+}
+
+func TestValidate_WithoutTransportConfig(t *testing.T) {
+	cfg := &config.Config{
+		APIs: []config.APIConfig{
+			{
+				Name:    "test-api",
+				BaseURL: "http://localhost:8080",
+				Timeout: 30,
+			},
+		},
+		Server: config.ServerConfig{
+			Name:    "test-server",
+			Version: "1.0.0",
+		},
+		// No transport config - should be fine
+	}
+
+	err := cfg.Validate()
+	assert.NoError(t, err)
+}

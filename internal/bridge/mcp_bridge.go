@@ -6,6 +6,7 @@ import (
 	"strconv"
 
 	"mcp-bridge/internal/mcp"
+	"mcp-bridge/internal/transport"
 	"mcp-bridge/pkg/types"
 )
 
@@ -15,12 +16,12 @@ type MCPBridge struct {
 	endpoints  []APIEndpoint
 }
 
-func NewMCPBridge() *MCPBridge {
+func NewMCPBridge(transport transport.Transport) *MCPBridge {
 	restClient := NewRestClient()
 	restClient.SetHeader("Content-Type", "application/json")
 
 	bridge := &MCPBridge{
-		server:     mcp.NewServer(),
+		server:     mcp.NewServer(transport),
 		restClient: restClient,
 		endpoints:  []APIEndpoint{}, // Initialize empty, will be populated via AddCustomEndpoint
 	}

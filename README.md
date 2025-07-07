@@ -26,6 +26,7 @@ MCP Bridge is a proxy server that allows existing REST APIs to be used as Model 
 
 - **REST API to MCP Conversion**: Automatically converts REST API endpoints to MCP tools
 - **JSON-RPC 2.0 Compliant**: Fully compliant with the MCP protocol
+- **Multiple Transport Support**: Supports both stdio and HTTP communication
 - **Configurable**: Flexible customization through configuration files
 - **Mock API Server**: Built-in simple REST API server for testing
 
@@ -34,11 +35,13 @@ MCP Bridge is a proxy server that allows existing REST APIs to be used as Model 
 ```
 mcp-bridge/
 ├── cmd/
-│   ├── mcp-server/        # MCP server executable
+│   ├── mcp-server-stdio/  # MCP server with stdio transport
+│   ├── mcp-server-http/   # MCP server with HTTP transport
 │   └── mock-api/          # Configurable mock API server
 ├── internal/
 │   ├── mcp/              # MCP implementation
 │   ├── bridge/           # REST API conversion logic
+│   ├── transport/        # Transport layer (stdio/HTTP)
 │   └── config/           # Configuration management
 ├── pkg/
 │   └── types/            # Common type definitions
@@ -56,8 +59,11 @@ mcp-bridge/
 ### Build
 
 ```bash
-# Build MCP server
-go build -o bin/mcp-server ./cmd/mcp-server
+# Build MCP server with stdio transport
+go build -o bin/mcp-server-stdio ./cmd/mcp-server-stdio
+
+# Build MCP server with HTTP transport
+go build -o bin/mcp-server-http ./cmd/mcp-server-http
 
 # Build Mock API server
 go build -o bin/mock-api ./cmd/mock-api
@@ -86,22 +92,41 @@ For detailed Mock API documentation, configuration options, and usage examples, 
 
 Start the MCP bridge server:
 
+#### Stdio Transport (Traditional)
+
 ```bash
-./bin/mcp-server
+./bin/mcp-server-stdio
 
 # Or specify config file
-./bin/mcp-server -config ./config.json
+./bin/mcp-server-stdio -config ./config.json
 
 # Or specify API base URL directly
-./bin/mcp-server -api-url http://localhost:8080
+./bin/mcp-server-stdio -api-url http://localhost:8080
 
 # Enable verbose logging
-./bin/mcp-server -verbose
+./bin/mcp-server-stdio -verbose
 ```
+
+#### HTTP Transport (New)
+
+```bash
+./bin/mcp-server-http
+
+# Specify HTTP settings
+./bin/mcp-server-http -port 8080 -host localhost -cors
+
+# Specify config file with HTTP settings
+./bin/mcp-server-http -config ./example-config.json -port 8080
+
+# Enable verbose logging
+./bin/mcp-server-http -verbose
+```
+
+The HTTP server will accept MCP JSON-RPC requests at `http://localhost:8080/mcp`.
 
 ### 3. Configuration File
 
-Example configuration file (`config.json`):
+Example configuration file (`example-config.json`):
 
 ```json
 {
@@ -263,19 +288,48 @@ Example configuration file (`config.json`):
 }
 ```
 
+**Note**: The configuration file is the same for both stdio and HTTP transports. The transport type is determined by which server executable you use (`mcp-server-stdio` or `mcp-server-http`).
+
+For HTTP transport, you can specify the server settings via command line arguments:
+
+```bash
+# HTTP transport with custom settings
+go run ./cmd/mcp-server-http --config ./example-config.json --port 8080 --host localhost --cors
+```
+
 ### 4. Usage with Claude Code
 
 Configuration example for Claude Code:
 
+#### Stdio Transport
 ```json
 {
   "mcpServers": {
     "mcp-bridge": {
       "command": "go",
-      "args": ["run", "./cmd/mcp-server", "--config", "./example-config.json"]
+      "args": ["run", "./cmd/mcp-server-stdio", "--config", "./example-config.json"]
     }
   }
 }
+```
+
+#### HTTP Transport
+```json
+{
+  "mcpServers": {
+    "mcp-bridge-http": {
+      "transport": {
+        "type": "http",
+        "url": "http://localhost:8080/mcp"
+      }
+    }
+  }
+}
+```
+
+Note: You need to start the HTTP MCP server separately:
+```bash
+go run ./cmd/mcp-server-http --config ./example-config.json --port 8080
 ```
 
 ## Available Tools
@@ -336,8 +390,14 @@ The MCP server provides the following resources:
 # Start Mock API server
 go run ./cmd/mock-api &
 
-# Test MCP server
-echo '{"jsonrpc": "2.0", "id": 1, "method": "initialize", "params": {"protocolVersion": "2024-11-05", "capabilities": {}, "clientInfo": {"name": "test", "version": "1.0.0"}}}' | go run ./cmd/mcp-server
+# Test MCP server (stdio)
+echo '{"jsonrpc": "2.0", "id": 1, "method": "initialize", "params": {"protocolVersion": "2024-11-05", "capabilities": {}, "clientInfo": {"name": "test", "version": "1.0.0"}}}' | go run ./cmd/mcp-server-stdio
+
+# Test MCP server (HTTP)
+go run ./cmd/mcp-server-http -port 8080 &
+curl -X POST http://localhost:8080/mcp \
+  -H "Content-Type: application/json" \
+  -d '{"jsonrpc": "2.0", "id": 1, "method": "ping"}'
 ```
 
 ### Adding Custom Endpoints

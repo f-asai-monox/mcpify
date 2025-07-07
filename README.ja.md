@@ -26,6 +26,7 @@ MCP Bridge は、既存の REST API を Model Context Protocol (MCP) サーバ�
 
 - **REST API to MCP変換**: REST APIエンドポイントをMCPツールとして自動変換
 - **JSON-RPC 2.0準拠**: MCPプロトコルに完全準拠
+- **複数トランスポート対応**: 標準入出力とHTTP通信の両方をサポート
 - **設定可能**: 設定ファイルによる柔軟なカスタマイズ
 - **Mock APIサーバー**: テスト用のシンプルなREST APIサーバーを内蔵
 
@@ -34,11 +35,13 @@ MCP Bridge は、既存の REST API を Model Context Protocol (MCP) サーバ�
 ```
 mcp-bridge/
 ├── cmd/
-│   ├── mcp-server/        # MCPサーバー実行ファイル
+│   ├── mcp-server-stdio/  # 標準入出力トランスポート対応MCPサーバー
+│   ├── mcp-server-http/   # HTTP通信トランスポート対応MCPサーバー
 │   └── mock-api/          # 設定可能なMock APIサーバー
 ├── internal/
 │   ├── mcp/              # MCP実装
 │   ├── bridge/           # REST API変換ロジック
+│   ├── transport/        # トランスポート層（stdio/HTTP）
 │   └── config/           # 設定管理
 ├── pkg/
 │   └── types/            # 共通型定義
@@ -56,8 +59,11 @@ mcp-bridge/
 ### ビルド
 
 ```bash
-# MCPサーバーのビルド
-go build -o bin/mcp-server ./cmd/mcp-server
+# 標準入出力トランスポート対応MCPサーバーのビルド
+go build -o bin/mcp-server-stdio ./cmd/mcp-server-stdio
+
+# HTTP通信トランスポート対応MCPサーバーのビルド
+go build -o bin/mcp-server-http ./cmd/mcp-server-http
 
 # Mock APIサーバーのビルド
 go build -o bin/mock-api ./cmd/mock-api
@@ -86,22 +92,41 @@ Mock APIの詳細なドキュメント、設定オプション、使用例につ
 
 MCPブリッジサーバーを起動します：
 
+#### 標準入出力トランスポート（従来版）
+
 ```bash
-./bin/mcp-server
+./bin/mcp-server-stdio
 
 # または設定ファイルを指定
-./bin/mcp-server -config ./config.json
+./bin/mcp-server-stdio -config ./config.json
 
 # またはAPIベースURLを直接指定
-./bin/mcp-server -api-url http://localhost:8080
+./bin/mcp-server-stdio -api-url http://localhost:8080
 
 # 詳細ログを有効にする場合
-./bin/mcp-server -verbose
+./bin/mcp-server-stdio -verbose
 ```
+
+#### HTTP通信トランスポート（新機能）
+
+```bash
+./bin/mcp-server-http
+
+# HTTP設定を指定
+./bin/mcp-server-http -port 8080 -host localhost -cors
+
+# 設定ファイルとHTTP設定を指定
+./bin/mcp-server-http -config ./example-config.json -port 8080
+
+# 詳細ログを有効にする場合
+./bin/mcp-server-http -verbose
+```
+
+HTTPサーバーは `http://localhost:8080/mcp` でMCP JSON-RPCリクエストを受け付けます。
 
 ### 3. 設定ファイル
 
-設定ファイル例（`config.json`）：
+設定ファイル例（`example-config.json`）：
 
 ```json
 {
@@ -262,19 +287,48 @@ MCPブリッジサーバーを起動します：
 }
 ```
 
+**注意**: 設定ファイルは標準入出力版とHTTP版で共通です。トランスポートの種類は使用するサーバー実行ファイル（`mcp-server-stdio` または `mcp-server-http`）によって決まります。
+
+HTTP通信の場合は、コマンドライン引数でサーバー設定を指定できます：
+
+```bash
+# カスタム設定でHTTP通信を使用
+go run ./cmd/mcp-server-http --config ./example-config.json --port 8080 --host localhost --cors
+```
+
 ### 4. Claude Codeでの利用
 
 Claude Codeで使用する場合の設定例：
 
+#### 標準入出力トランスポート
 ```json
 {
   "mcpServers": {
     "mcp-bridge": {
       "command": "go",
-      "args": ["run", "./cmd/mcp-server", "--config", "./example-config.json"]
+      "args": ["run", "./cmd/mcp-server-stdio", "--config", "./example-config.json"]
     }
   }
 }
+```
+
+#### HTTP通信トランスポート
+```json
+{
+  "mcpServers": {
+    "mcp-bridge-http": {
+      "transport": {
+        "type": "http",
+        "url": "http://localhost:8080/mcp"
+      }
+    }
+  }
+}
+```
+
+注意：HTTP MCPサーバーは別途起動する必要があります：
+```bash
+go run ./cmd/mcp-server-http --config ./example-config.json --port 8080
 ```
 
 ## 利用可能なツール
@@ -335,8 +389,14 @@ MCPサーバーは以下のリソースを提供します：
 # Mock APIサーバーの起動
 go run ./cmd/mock-api &
 
-# MCPサーバーのテスト
-echo '{"jsonrpc": "2.0", "id": 1, "method": "initialize", "params": {"protocolVersion": "2024-11-05", "capabilities": {}, "clientInfo": {"name": "test", "version": "1.0.0"}}}' | go run ./cmd/mcp-server
+# MCPサーバーのテスト（標準入出力）
+echo '{"jsonrpc": "2.0", "id": 1, "method": "initialize", "params": {"protocolVersion": "2024-11-05", "capabilities": {}, "clientInfo": {"name": "test", "version": "1.0.0"}}}' | go run ./cmd/mcp-server-stdio
+
+# MCPサーバーのテスト（HTTP通信）
+go run ./cmd/mcp-server-http -port 8080 &
+curl -X POST http://localhost:8080/mcp \
+  -H "Content-Type: application/json" \
+  -d '{"jsonrpc": "2.0", "id": 1, "method": "ping"}'
 ```
 
 ### カスタムエンドポイントの追加
