@@ -15,11 +15,13 @@ func TestConfig_Validate_BasicAuth_Success(t *testing.T) {
 				Name:    "test-api",
 				BaseURL: "http://localhost:8080",
 				Timeout: 30,
-				Auth: &config.AuthConfig{
-					Type: "basic",
-					Basic: &config.BasicAuthConfig{
-						Username: "testuser",
-						Password: "testpass",
+				Auth: []config.AuthConfig{
+					{
+						Type: "basic",
+						Basic: &config.BasicAuthConfig{
+							Username: "testuser",
+							Password: "testpass",
+						},
 					},
 				},
 			},
@@ -41,11 +43,13 @@ func TestConfig_Validate_BasicAuth_MissingType(t *testing.T) {
 				Name:    "test-api",
 				BaseURL: "http://localhost:8080",
 				Timeout: 30,
-				Auth: &config.AuthConfig{
-					Type: "",
-					Basic: &config.BasicAuthConfig{
-						Username: "testuser",
-						Password: "testpass",
+				Auth: []config.AuthConfig{
+					{
+						Type: "",
+						Basic: &config.BasicAuthConfig{
+							Username: "testuser",
+							Password: "testpass",
+						},
 					},
 				},
 			},
@@ -68,9 +72,11 @@ func TestConfig_Validate_BasicAuth_MissingConfig(t *testing.T) {
 				Name:    "test-api",
 				BaseURL: "http://localhost:8080",
 				Timeout: 30,
-				Auth: &config.AuthConfig{
-					Type:  "basic",
-					Basic: nil,
+				Auth: []config.AuthConfig{
+					{
+						Type:  "basic",
+						Basic: nil,
+					},
 				},
 			},
 		},
@@ -92,11 +98,13 @@ func TestConfig_Validate_BasicAuth_MissingUsername(t *testing.T) {
 				Name:    "test-api",
 				BaseURL: "http://localhost:8080",
 				Timeout: 30,
-				Auth: &config.AuthConfig{
-					Type: "basic",
-					Basic: &config.BasicAuthConfig{
-						Username: "",
-						Password: "testpass",
+				Auth: []config.AuthConfig{
+					{
+						Type: "basic",
+						Basic: &config.BasicAuthConfig{
+							Username: "",
+							Password: "testpass",
+						},
 					},
 				},
 			},
@@ -119,11 +127,13 @@ func TestConfig_Validate_BasicAuth_MissingPassword(t *testing.T) {
 				Name:    "test-api",
 				BaseURL: "http://localhost:8080",
 				Timeout: 30,
-				Auth: &config.AuthConfig{
-					Type: "basic",
-					Basic: &config.BasicAuthConfig{
-						Username: "testuser",
-						Password: "",
+				Auth: []config.AuthConfig{
+					{
+						Type: "basic",
+						Basic: &config.BasicAuthConfig{
+							Username: "testuser",
+							Password: "",
+						},
 					},
 				},
 			},
@@ -146,8 +156,10 @@ func TestConfig_Validate_UnsupportedAuthType(t *testing.T) {
 				Name:    "test-api",
 				BaseURL: "http://localhost:8080",
 				Timeout: 30,
-				Auth: &config.AuthConfig{
-					Type: "oauth2",
+				Auth: []config.AuthConfig{
+					{
+						Type: "oauth2",
+					},
 				},
 			},
 		},
@@ -169,7 +181,7 @@ func TestConfig_Validate_NoAuth(t *testing.T) {
 				Name:    "test-api",
 				BaseURL: "http://localhost:8080",
 				Timeout: 30,
-				Auth:    nil, // No authentication
+				Auth:    []config.AuthConfig{}, // No authentication
 			},
 		},
 		Server: config.ServerConfig{
@@ -219,11 +231,13 @@ func TestConfig_Validate_HeadersWithAuth(t *testing.T) {
 				Headers: map[string]string{
 					"X-API-Key": "test-key",
 				},
-				Auth: &config.AuthConfig{
-					Type: "basic",
-					Basic: &config.BasicAuthConfig{
-						Username: "testuser",
-						Password: "testpass",
+				Auth: []config.AuthConfig{
+					{
+						Type: "basic",
+						Basic: &config.BasicAuthConfig{
+							Username: "testuser",
+							Password: "testpass",
+						},
 					},
 				},
 			},

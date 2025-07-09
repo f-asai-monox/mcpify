@@ -28,7 +28,7 @@ type APIEndpoint struct {
 	Headers     map[string]string  `json:"headers"`
 	APIName     string             `json:"apiName"`
 	BaseURL     string             `json:"baseUrl"`
-	Auth        *config.AuthConfig `json:"auth,omitempty"`
+	Auth        []config.AuthConfig `json:"auth,omitempty"`
 }
 
 type APIParameter struct {
@@ -110,8 +110,8 @@ func (c *RestClient) MakeRequest(endpoint APIEndpoint, args map[string]interface
 	}
 
 	// Apply authentication
-	if endpoint.Auth != nil {
-		err := c.applyAuthentication(req, endpoint.Auth)
+	if len(endpoint.Auth) > 0 {
+		err := c.applyAuthentication(req, &endpoint.Auth[0])
 		if err != nil {
 			return nil, fmt.Errorf("error applying authentication: %w", err)
 		}

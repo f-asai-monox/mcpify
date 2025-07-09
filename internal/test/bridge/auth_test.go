@@ -49,11 +49,13 @@ func TestRestClient_BasicAuth_Success(t *testing.T) {
 		Method:      "GET",
 		Path:        "/test",
 		BaseURL:     server.URL,
-		Auth: &config.AuthConfig{
-			Type: "basic",
-			Basic: &config.BasicAuthConfig{
-				Username: expectedUsername,
-				Password: expectedPassword,
+		Auth: []config.AuthConfig{
+			{
+				Type: "basic",
+				Basic: &config.BasicAuthConfig{
+					Username: expectedUsername,
+					Password: expectedPassword,
+				},
 			},
 		},
 	}
@@ -74,9 +76,11 @@ func TestRestClient_BasicAuth_MissingCredentials(t *testing.T) {
 		Method:      "GET",
 		Path:        "/test",
 		BaseURL:     "http://localhost:8080",
-		Auth: &config.AuthConfig{
-			Type:  "basic",
-			Basic: nil,
+		Auth: []config.AuthConfig{
+			{
+				Type:  "basic",
+				Basic: nil,
+			},
 		},
 	}
 
@@ -94,8 +98,10 @@ func TestRestClient_UnsupportedAuthType(t *testing.T) {
 		Method:      "GET",
 		Path:        "/test",
 		BaseURL:     "http://localhost:8080",
-		Auth: &config.AuthConfig{
-			Type: "unsupported",
+		Auth: []config.AuthConfig{
+			{
+				Type: "unsupported",
+			},
 		},
 	}
 
@@ -126,7 +132,7 @@ func TestRestClient_NoAuth(t *testing.T) {
 		Method:      "GET",
 		Path:        "/test",
 		BaseURL:     server.URL,
-		Auth:        nil, // No authentication
+		Auth:        []config.AuthConfig{}, // No authentication
 	}
 
 	resp, err := client.MakeRequest(endpoint, map[string]interface{}{})
@@ -167,11 +173,13 @@ func TestRestClient_BasicAuth_WithOtherHeaders(t *testing.T) {
 		Headers: map[string]string{
 			"X-Custom-Header": "custom-value",
 		},
-		Auth: &config.AuthConfig{
-			Type: "basic",
-			Basic: &config.BasicAuthConfig{
-				Username: expectedUsername,
-				Password: expectedPassword,
+		Auth: []config.AuthConfig{
+			{
+				Type: "basic",
+				Basic: &config.BasicAuthConfig{
+					Username: expectedUsername,
+					Password: expectedPassword,
+				},
 			},
 		},
 	}

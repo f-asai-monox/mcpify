@@ -19,7 +19,7 @@ type APIConfig struct {
 	BaseURL   string           `json:"baseUrl"`
 	Timeout   int              `json:"timeout"`
 	Headers   map[string]string `json:"headers,omitempty"`
-	Auth      *AuthConfig      `json:"auth,omitempty"`
+	Auth      []AuthConfig     `json:"auth,omitempty"`
 	Endpoints []CustomEndpoint `json:"endpoints,omitempty"`
 }
 
@@ -162,24 +162,24 @@ func (c *Config) Validate() error {
 		}
 
 		// Validate authentication configuration
-		if api.Auth != nil {
-			if api.Auth.Type == "" {
-				return fmt.Errorf("API %s: auth type is required when auth is configured", api.Name)
+		for j, auth := range api.Auth {
+			if auth.Type == "" {
+				return fmt.Errorf("API %s: auth type is required when auth is configured (auth index %d)", api.Name, j)
 			}
 
-			switch api.Auth.Type {
+			switch auth.Type {
 			case "basic":
-				if api.Auth.Basic == nil {
-					return fmt.Errorf("API %s: basic auth configuration is required when type is 'basic'", api.Name)
+				if auth.Basic == nil {
+					return fmt.Errorf("API %s: basic auth configuration is required when type is 'basic' (auth index %d)", api.Name, j)
 				}
-				if api.Auth.Basic.Username == "" {
-					return fmt.Errorf("API %s: basic auth username is required", api.Name)
+				if auth.Basic.Username == "" {
+					return fmt.Errorf("API %s: basic auth username is required (auth index %d)", api.Name, j)
 				}
-				if api.Auth.Basic.Password == "" {
-					return fmt.Errorf("API %s: basic auth password is required", api.Name)
+				if auth.Basic.Password == "" {
+					return fmt.Errorf("API %s: basic auth password is required (auth index %d)", api.Name, j)
 				}
 			default:
-				return fmt.Errorf("API %s: unsupported auth type '%s'", api.Name, api.Auth.Type)
+				return fmt.Errorf("API %s: unsupported auth type '%s' (auth index %d)", api.Name, auth.Type, j)
 			}
 		}
 

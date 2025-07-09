@@ -7,13 +7,15 @@
       "headers": {
         "X-API-Key": "your-api-key-here"
       },
-      "auth": {
-        "type": "basic",
-        "basic": {
-          "username": "admin",
-          "password": "password"
+      "auth": [
+        {
+          "type": "basic",
+          "basic": {
+            "username": "admin",
+            "password": "password"
+          }
         }
-      },
+      ],
       "endpoints": [
         {
           "name": "health",

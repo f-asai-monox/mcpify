@@ -17,13 +17,15 @@ The MCP Bridge uses JSON configuration files to define API endpoints, authentica
         "X-API-Key": "your-api-key-here",
         "X-Custom-Header": "custom-value"
       },
-      "auth": {
-        "type": "basic",
-        "basic": {
-          "username": "admin",
-          "password": "password"
+      "auth": [
+        {
+          "type": "basic",
+          "basic": {
+            "username": "admin",
+            "password": "password"
+          }
         }
-      },
+      ],
       "endpoints": [
         {
           "name": "health",
