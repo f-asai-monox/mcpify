@@ -37,14 +37,14 @@ download_and_install() {
     local os=$2
     local arch=$3
     
-    local filename="${BINARY_NAME}_${os}_${arch}.tar.gz"
+    local filename="mcpify_${os}_${arch}.tar.gz"
     if [ "$os" = "Windows" ]; then
-        filename="${BINARY_NAME}_${os}_${arch}.zip"
+        filename="mcpify_${os}_${arch}.zip"
     fi
     
     local url="https://github.com/${REPO}/releases/download/${version}/${filename}"
     
-    echo "Downloading ${BINARY_NAME} ${version} for ${os}/${arch}..."
+    echo "Downloading mcpify ${version} for ${os}/${arch}..."
     
     local temp_dir=$(mktemp -d)
     trap "rm -rf $temp_dir" EXIT
