@@ -10,16 +10,38 @@ A proxy server that enables REST APIs to be used as MCP (Model Context Protocol)
 - **Configurable**: Flexible customization through configuration files
 - **Mock API Server**: Built-in simple REST API server for testing
 
-## Quick Start
+## Installation
 
-### 1. Install Dependencies
+### Option 1: Download Pre-built Binary (Recommended)
+
+Download the latest release for your platform from the [Releases page](https://github.com/f-asai-monox/mcpify/releases).
+
+#### Using curl (Linux/macOS)
 ```bash
-# Requires Go 1.24.2+
-go version
+curl -sSL https://raw.githubusercontent.com/f-asai-monox/mcpify/main/install.sh | bash
 ```
 
-### 2. Build the Server
+#### Using wget (Linux/macOS)
 ```bash
+wget -qO- https://raw.githubusercontent.com/f-asai-monox/mcpify/main/install.sh | bash
+```
+
+#### Manual Download
+1. Go to [Releases](https://github.com/f-asai-monox/mcpify/releases)
+2. Download the appropriate archive for your OS and architecture
+3. Extract and move the binary to your PATH
+
+### Option 2: Install with go install
+```bash
+go install github.com/f-asai-monox/mcpify/cmd/mcp-server-stdio@latest
+```
+
+### Option 3: Build from Source
+```bash
+# Clone the repository
+git clone https://github.com/f-asai-monox/mcpify.git
+cd mcpify
+
 # Build MCP server
 go build -o bin/mcp-server-stdio ./cmd/mcp-server-stdio
 
@@ -27,21 +49,30 @@ go build -o bin/mcp-server-stdio ./cmd/mcp-server-stdio
 go build -o bin/mock-api ./cmd/mock-api
 ```
 
-### 3. Start Mock API (for testing)
+## Quick Start
+
+### 1. Start Mock API (for testing)
 ```bash
+# If installed via binary
+mcpify-mock-api
+
+# If built from source
 ./bin/mock-api
 ```
 
-### 4. Start MCP Server
+### 2. Start MCP Server
 ```bash
-# Basic usage
-./bin/mcp-server-stdio
+# If installed via binary
+mcpify
 
 # With configuration file
-./bin/mcp-server-stdio -config ./example-config.json
+mcpify -config ./example-config.json
 
 # With API URL
-./bin/mcp-server-stdio -api-url http://localhost:8080
+mcpify -api-url http://localhost:8080
+
+# If built from source
+./bin/mcp-server-stdio -config ./example-config.json
 ```
 
 ## Basic Usage
