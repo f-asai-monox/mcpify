@@ -175,7 +175,7 @@ func (c *RestClient) buildURLWithBase(endpoint APIEndpoint, args map[string]inte
 		switch param.In {
 		case "path":
 			placeholder := "{" + param.Name + "}"
-			path = strings.ReplaceAll(path, placeholder, fmt.Sprintf("%v", value))
+			path = strings.ReplaceAll(path, placeholder, url.PathEscape(fmt.Sprintf("%v", value)))
 		case "query":
 			queryParams.Add(param.Name, fmt.Sprintf("%v", value))
 		}
