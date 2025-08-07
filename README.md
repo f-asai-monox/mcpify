@@ -152,8 +152,8 @@ Create a `config.json` file:
 {
   "mcpServers": {
     "mcp-bridge": {
-      "command": "go",
-      "args": ["run", "./cmd/mcp-server-stdio", "--config", "./config.json"]
+      "command": "mcp-server-stdio",
+      "args": ["-config", "./config.json"]
     }
   }
 }

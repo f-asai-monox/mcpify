@@ -153,8 +153,8 @@ mcp-server-http -config ./example-config.json -port 8080
 {
   "mcpServers": {
     "mcp-bridge": {
-      "command": "go",
-      "args": ["run", "./cmd/mcp-server-stdio", "--config", "./config.json"]
+      "command": "mcp-server-stdio",
+      "args": ["-config", "./config.json"]
     }
   }
 }
