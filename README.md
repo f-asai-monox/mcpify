@@ -20,7 +20,11 @@ Download the latest release for your platform from the [Releases page](https://g
 
 Using curl:
 ```bash
+# Install latest version
 curl -sSL https://raw.githubusercontent.com/f-asai-monox/mcpify/main/install.sh | bash
+
+# Install specific version
+VERSION=v0.1.2 curl -sSL https://raw.githubusercontent.com/f-asai-monox/mcpify/main/install.sh | bash
 ```
 
 Using wget:

@@ -20,7 +20,11 @@ REST APIをMCPサーバーとして利用するためのプロキシサーバー
 
 curlを使用:
 ```bash
+# 最新版をインストール
 curl -sSL https://raw.githubusercontent.com/f-asai-monox/mcpify/main/install.sh | bash
+
+# 特定バージョンをインストール
+VERSION=v0.1.2 curl -sSL https://raw.githubusercontent.com/f-asai-monox/mcpify/main/install.sh | bash
 ```
 
 wgetを使用:

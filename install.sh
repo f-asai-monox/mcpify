@@ -89,11 +89,17 @@ main() {
     
     OS=$(detect_os)
     ARCH=$(detect_arch)
-    VERSION=$(get_latest_release)
     
-    if [ -z "$VERSION" ]; then
-        echo "Error: Could not fetch latest release version"
-        exit 1
+    # Allow VERSION to be set via environment variable
+    if [ -n "$VERSION" ]; then
+        echo "Using specified version: $VERSION"
+    else
+        VERSION=$(get_latest_release)
+        
+        if [ -z "$VERSION" ]; then
+            echo "Error: Could not fetch latest release version"
+            exit 1
+        fi
     fi
     
     download_and_install "$VERSION" "$OS" "$ARCH"
