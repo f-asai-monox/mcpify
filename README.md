@@ -67,26 +67,37 @@ go build -o bin/mock-api ./cmd/mock-api
 
 ### 1. Start Mock API (for testing)
 ```bash
-# If installed via binary
-mcpify-mock-api
-
 # If built from source
 ./bin/mock-api
 ```
 
 ### 2. Start MCP Server
+
+#### Using stdio transport (for Claude Code):
 ```bash
 # If installed via binary
-mcpify
+mcp-server-stdio
 
 # With configuration file
-mcpify -config ./example-config.json
+mcp-server-stdio -config ./example-config.json
 
 # With API URL
-mcpify -api-url http://localhost:8080
+mcp-server-stdio -api-url http://localhost:8080
 
 # If built from source
 ./bin/mcp-server-stdio -config ./example-config.json
+```
+
+#### Using HTTP transport:
+```bash
+# If installed via binary
+mcp-server-http -port 8080
+
+# With configuration file
+mcp-server-http -config ./example-config.json -port 8080
+
+# If built from source
+./bin/mcp-server-http -port 8080
 ```
 
 ## Basic Usage

@@ -73,6 +73,8 @@ go build -o bin/mock-api ./cmd/mock-api
 ```
 
 ### 2. MCPサーバーの起動
+
+#### 標準入出力方式（Claude Code用）:
 ```bash
 # バイナリでインストールした場合
 mcp-server-stdio
@@ -85,6 +87,18 @@ mcp-server-stdio -api-url http://localhost:8080
 
 # ソースからビルドした場合
 ./bin/mcp-server-stdio -config ./example-config.json
+```
+
+#### HTTP方式:
+```bash
+# バイナリでインストールした場合
+mcp-server-http -port 8080
+
+# 設定ファイルを指定
+mcp-server-http -config ./example-config.json -port 8080
+
+# ソースからビルドした場合
+./bin/mcp-server-http -port 8080
 ```
 
 ## 基本的な使用方法

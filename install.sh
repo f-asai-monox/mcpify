@@ -4,7 +4,8 @@ set -e
 
 REPO="f-asai-monox/mcpify"
 INSTALL_DIR="${INSTALL_DIR:-/usr/local/bin}"
-BINARY_NAME="mcpify"
+STDIO_BINARY="mcp-server-stdio"
+HTTP_BINARY="mcp-server-http"
 
 detect_os() {
     OS=""
@@ -59,16 +60,28 @@ download_and_install() {
     
     echo "Installing to ${INSTALL_DIR}..."
     
-    if [ -w "$INSTALL_DIR" ]; then
-        mv "${temp_dir}/${BINARY_NAME}" "$INSTALL_DIR/"
-    else
-        echo "Permission denied. Trying with sudo..."
-        sudo mv "${temp_dir}/${BINARY_NAME}" "$INSTALL_DIR/"
+    # Install stdio binary
+    if [ -f "${temp_dir}/${STDIO_BINARY}" ]; then
+        if [ -w "$INSTALL_DIR" ]; then
+            mv "${temp_dir}/${STDIO_BINARY}" "$INSTALL_DIR/"
+        else
+            echo "Permission denied. Trying with sudo..."
+            sudo mv "${temp_dir}/${STDIO_BINARY}" "$INSTALL_DIR/"
+        fi
+        chmod +x "${INSTALL_DIR}/${STDIO_BINARY}"
+        echo "Successfully installed ${STDIO_BINARY} to ${INSTALL_DIR}/${STDIO_BINARY}"
     fi
     
-    chmod +x "${INSTALL_DIR}/${BINARY_NAME}"
-    
-    echo "Successfully installed ${BINARY_NAME} to ${INSTALL_DIR}/${BINARY_NAME}"
+    # Install http binary
+    if [ -f "${temp_dir}/${HTTP_BINARY}" ]; then
+        if [ -w "$INSTALL_DIR" ]; then
+            mv "${temp_dir}/${HTTP_BINARY}" "$INSTALL_DIR/"
+        else
+            sudo mv "${temp_dir}/${HTTP_BINARY}" "$INSTALL_DIR/"
+        fi
+        chmod +x "${INSTALL_DIR}/${HTTP_BINARY}"
+        echo "Successfully installed ${HTTP_BINARY} to ${INSTALL_DIR}/${HTTP_BINARY}"
+    fi
 }
 
 main() {
@@ -85,10 +98,18 @@ main() {
     
     download_and_install "$VERSION" "$OS" "$ARCH"
     
-    if command -v "$BINARY_NAME" &> /dev/null; then
-        echo "Installation complete! Run '${BINARY_NAME} --help' to get started."
-    else
-        echo "Installation complete! Make sure ${INSTALL_DIR} is in your PATH."
+    echo ""
+    echo "Installation complete!"
+    echo ""
+    echo "Available commands:"
+    echo "  mcp-server-stdio  - MCP server with stdio transport"
+    echo "  mcp-server-http   - MCP server with HTTP transport"
+    echo ""
+    echo "Run 'mcp-server-stdio --help' or 'mcp-server-http --help' to get started."
+    
+    if ! command -v "$STDIO_BINARY" &> /dev/null; then
+        echo ""
+        echo "Note: Make sure ${INSTALL_DIR} is in your PATH."
     fi
 }
 
