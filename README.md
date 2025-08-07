@@ -16,14 +16,28 @@ A proxy server that enables REST APIs to be used as MCP (Model Context Protocol)
 
 Download the latest release for your platform from the [Releases page](https://github.com/f-asai-monox/mcpify/releases).
 
-#### Using curl (Linux/macOS)
+#### Linux/macOS
+
+Using curl:
 ```bash
 curl -sSL https://raw.githubusercontent.com/f-asai-monox/mcpify/main/install.sh | bash
 ```
 
-#### Using wget (Linux/macOS)
+Using wget:
 ```bash
 wget -qO- https://raw.githubusercontent.com/f-asai-monox/mcpify/main/install.sh | bash
+```
+
+#### Windows
+
+Using PowerShell (recommended):
+```powershell
+iwr -useb https://raw.githubusercontent.com/f-asai-monox/mcpify/main/install.ps1 | iex
+```
+
+Using Command Prompt:
+```cmd
+curl -sSL https://raw.githubusercontent.com/f-asai-monox/mcpify/main/install.bat -o install.bat && install.bat
 ```
 
 #### Manual Download

@@ -10,38 +10,81 @@ REST APIをMCPサーバーとして利用するためのプロキシサーバー
 - **設定可能**: 設定ファイルによる柔軟なカスタマイズ
 - **Mock APIサーバー**: テスト用のシンプルなREST APIサーバーを内蔵
 
-## クイックスタート
+## インストール
 
-### 1. 依存関係のインストール
+### オプション1: ビルド済みバイナリをダウンロード（推奨）
+
+[Releasesページ](https://github.com/f-asai-monox/mcpify/releases)から、お使いのプラットフォーム用の最新リリースをダウンロードしてください。
+
+#### Linux/macOS
+
+curlを使用:
 ```bash
-# Go 1.24.2以上が必要
-go version
+curl -sSL https://raw.githubusercontent.com/f-asai-monox/mcpify/main/install.sh | bash
 ```
 
-### 2. サーバーのビルド
+wgetを使用:
 ```bash
+wget -qO- https://raw.githubusercontent.com/f-asai-monox/mcpify/main/install.sh | bash
+```
+
+#### Windows
+
+PowerShellを使用（推奨）:
+```powershell
+iwr -useb https://raw.githubusercontent.com/f-asai-monox/mcpify/main/install.ps1 | iex
+```
+
+コマンドプロンプトを使用:
+```cmd
+curl -sSL https://raw.githubusercontent.com/f-asai-monox/mcpify/main/install.bat -o install.bat && install.bat
+```
+
+#### 手動ダウンロード
+1. [Releases](https://github.com/f-asai-monox/mcpify/releases)にアクセス
+2. お使いのOSとアーキテクチャに合ったアーカイブをダウンロード
+3. 展開してバイナリをPATHに移動
+
+### オプション2: go installでインストール
+```bash
+go install github.com/f-asai-monox/mcpify/cmd/mcp-server-stdio@latest
+```
+
+### オプション3: ソースからビルド
+```bash
+# リポジトリをクローン
+git clone https://github.com/f-asai-monox/mcpify.git
+cd mcpify
+
 # MCPサーバーのビルド
 go build -o bin/mcp-server-stdio ./cmd/mcp-server-stdio
+go build -o bin/mcp-server-http ./cmd/mcp-server-http
 
 # テスト用Mock APIのビルド
 go build -o bin/mock-api ./cmd/mock-api
 ```
 
-### 3. Mock APIの起動（テスト用）
+## クイックスタート
+
+### 1. Mock APIの起動（テスト用）
 ```bash
+# ソースからビルドした場合
 ./bin/mock-api
 ```
 
-### 4. MCPサーバーの起動
+### 2. MCPサーバーの起動
 ```bash
-# 基本的な使用法
-./bin/mcp-server-stdio
+# バイナリでインストールした場合
+mcp-server-stdio
 
 # 設定ファイルを指定
-./bin/mcp-server-stdio -config ./example-config.json
+mcp-server-stdio -config ./example-config.json
 
 # API URLを指定
-./bin/mcp-server-stdio -api-url http://localhost:8080
+mcp-server-stdio -api-url http://localhost:8080
+
+# ソースからビルドした場合
+./bin/mcp-server-stdio -config ./example-config.json
 ```
 
 ## 基本的な使用方法
